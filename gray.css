@@ -1,0 +1,42 @@
+/* Blocked images: paint the reserved box and keep alt text readable.
+   No filter here, or contrast(0) would flatten the alt text to gray-on-gray.
+   --gray-color is set at runtime by gray.js from the user's chosen box
+   color (dashboard); the fallback keeps the right color from first paint,
+   before that JS has had a chance to run. */
+html:not([data-gray="off"]) img:not([data-gray-show]) {
+  background-color: var(--gray-color, #9c9086) !important;
+  color: #1a1a1a;
+}
+
+/* data: and blob: images bypass declarativeNetRequest entirely, so they still
+   need flattening, and so does video, which DNR never blocks. contrast(0)
+   forces every opaque pixel to flat neutral gray (~#808080) regardless of
+   --gray-color — it operates on the image's own pixel values, not the CSS
+   background — so the custom color only actually shows through on fully
+   transparent regions here. Not fixable without a canvas/blend-mode
+   workaround for what's already a documented edge case (see plan). */
+html:not([data-gray="off"]) img[src^="data:"]:not([data-gray-show]),
+html:not([data-gray="off"]) img[src^="blob:"]:not([data-gray-show]),
+html:not([data-gray="off"]) video:not([data-gray-show]) {
+  filter: contrast(0) !important;
+  background-color: var(--gray-color, #9c9086) !important;
+}
+
+/* Inline style="background-image" is caught for free by the attribute
+   selector below. Stylesheet-declared background-images (a class rule rather
+   than an inline style) can't be selected by CSS at all — gray.js scans
+   computed styles and tags matching elements with data-gray-bg so this same
+   rule catches those too. The DNR block rule stops the bytes regardless of
+   when that scan runs, so the only cost of scan lag is a briefly blank box,
+   never the real image. */
+html:not([data-gray="off"]) [style*="background-image"]:not([data-gray-show]),
+html:not([data-gray="off"]) [data-gray-bg]:not([data-gray-show]) {
+  background-image: none !important;
+  background-color: var(--gray-color, #9c9086) !important;
+}
+
+html:not([data-gray="off"]) img:not([data-gray-show]),
+html:not([data-gray="off"]) [style*="background-image"]:not([data-gray-show]),
+html:not([data-gray="off"]) [data-gray-bg]:not([data-gray-show]) {
+  cursor: pointer;
+}

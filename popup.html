@@ -1,0 +1,112 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="switch.css" />
+    <style>
+      :root {
+        color-scheme: dark;
+      }
+      body {
+        width: 260px;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        font-size: 13px;
+        background: #1c1c1e;
+        color: #f2f2f2;
+        margin: 0;
+        padding: 16px;
+      }
+      header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 14px;
+      }
+      header img {
+        width: 20px;
+        height: 20px;
+        border-radius: 4px;
+      }
+      header h1 {
+        font-size: 15px;
+        font-weight: 700;
+        margin: 0;
+      }
+      .row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        background: #26292b;
+        border-radius: 12px;
+        padding: 10px 12px;
+        margin-bottom: 8px;
+      }
+      .row-label {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .row-sub {
+        font-size: 11px;
+        color: #9a9a9e;
+      }
+      button.dashboard {
+        width: 100%;
+        padding: 9px;
+        font-size: 13px;
+        font-weight: 600;
+        border: none;
+        border-radius: 12px;
+        background: var(--accent);
+        color: var(--accent-text);
+        cursor: pointer;
+        margin-top: 4px;
+      }
+      button.dashboard:hover {
+        background: var(--accent-hover);
+      }
+      #stat {
+        margin-top: 10px;
+        text-align: center;
+        font-size: 12px;
+        color: #9a9a9e;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <img src="icons/32.png" alt="" />
+      <h1>Gray</h1>
+    </header>
+
+    <div class="row">
+      <div class="row-label">Enabled everywhere</div>
+      <label class="switch">
+        <input type="checkbox" id="enabled" disabled />
+        <span class="track"></span>
+        <span class="thumb"></span>
+      </label>
+    </div>
+
+    <div class="row">
+      <div>
+        <div class="row-label">Block images here</div>
+        <div class="row-sub" id="host">this site</div>
+      </div>
+      <label class="switch">
+        <input type="checkbox" id="blockHere" disabled />
+        <span class="track"></span>
+        <span class="thumb"></span>
+      </label>
+    </div>
+
+    <button class="dashboard" id="dashboard">Manage exempt sites</button>
+
+    <div id="stat">You've blocked 0 images so far.</div>
+
+    <script src="match.js"></script>
+    <script src="stat.js"></script>
+    <script src="popup.js"></script>
+  </body>
+</html>
