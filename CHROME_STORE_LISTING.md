@@ -27,21 +27,13 @@ Gray blocks images and videos for faster, distraction-free browsing
 ```
 Gray blocks images and videos for faster, distraction-free browsing.
 
-Images and autoplaying video are most of the weight, and most of the distraction, on a typical page. Gray blocks them at the network level before they ever download, so the bytes never hit your connection, and mutes video as soon as it starts playing. Pages load faster, use less bandwidth, and stay quiet. Want images on a site you trust? Add it to your exceptions in the dashboard.
+Images and autoplaying video are most of the weight, and most of the distraction, on a typical page. Gray blocks them at the network level before they ever download, so the bytes never hit your connection, and mutes video as soon as it starts playing. Pages load faster, use less bandwidth, and stay quiet.
 
-Gray:
-- Blocks images before they download, at the network level, not just hidden with CSS, so the bytes never hit your connection.
-- Mutes video automatically.
-- Allows images on specific sites, or specific sections of a site (e.g. example.com/maps).
-- Choose your own box color from five presets.
-- See a running count of images you've blocked.
-- One switch to turn blocking off everywhere, instantly.
-- Simple and lightweight: no bloat, no dependencies, no accounts.
+Want images on a site you trust? Add it to your exceptions in the dashboard, down to specific sites or even specific sections of a site, like "example.com/maps". Or, turn it off everywhere with one click. Gray stays simple and lightweight throughout: no bloat, no dependencies, no accounts.
 
-PRIVACY:
 Gray has no server, no analytics, and no account. All settings are stored locally in your browser and never leave your device. See the full privacy policy: https://github.com/chauandrew/gray/blob/main/PRIVACY.md
 
-Open source: https://github.com/chauandrew/gray/tree/main
+Open source: https://github.com/chauandrew/gray
 ```
 
 **Category:** Productivity (Accessibility is a reasonable alternative)
