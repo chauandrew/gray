@@ -43,8 +43,11 @@ function renderHost(exemptRules) {
 }
 
 async function init() {
-  const [{ exemptRules = [], blockedCount = 0, enabled = true }, tab] = await Promise.all([
-    chrome.storage.local.get(["exemptRules", "blockedCount", "enabled"]),
+  const [
+    { exemptRules = [], blockedCount = 0, enabled = true, grayColor = DEFAULT_GRAY_COLOR },
+    tab,
+  ] = await Promise.all([
+    chrome.storage.local.get(["exemptRules", "blockedCount", "enabled", "grayColor"]),
     getActiveTab(),
   ]);
   currentHost = tab?.host ?? null;
@@ -54,6 +57,7 @@ async function init() {
   enabledToggle.disabled = false;
   renderHost(exemptRules);
   renderStat(statEl, blockedCount);
+  renderColorSwatches(grayColor);
 }
 
 enabledToggle.addEventListener("change", async () => {
@@ -87,6 +91,7 @@ blockHereToggle.addEventListener("change", async () => {
 chrome.storage.onChanged.addListener((changes, area) => {
   if (area !== "local") return;
   if (changes.blockedCount) renderStat(statEl, changes.blockedCount.newValue);
+  if (changes.grayColor) renderColorSwatches(changes.grayColor.newValue || DEFAULT_GRAY_COLOR);
 });
 
 init();

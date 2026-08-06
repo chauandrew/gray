@@ -43,3 +43,14 @@
 .switch input:checked + .track + .thumb {
   transform: translateX(16px);
 }
+.swatch {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+.swatch.selected {
+  box-shadow: 0 0 0 2px #1c1c1e, 0 0 0 4px var(--accent);
+}

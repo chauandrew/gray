@@ -116,31 +116,112 @@
     true,
   );
 
-  // Stylesheet-declared background-images can't be targeted by any CSS
-  // selector, so this scans computed style and tags matches for gray.css to
-  // paint. The DNR rule already blocks the underlying request no matter when
-  // this runs, so scan lag only risks a briefly blank box, never the real
-  // image. Debounced and re-run on DOM changes since SPAs add elements after
-  // the initial scan.
+  // Shared by the two scans below: a solid box reads as an intentional
+  // stand-in for a photo, but on a favicon/logo-sized element it just looks
+  // broken.
+  const isIconSized = ({ width, height }) => width < 40 && height < 40;
+
+  // Coalesces bursty DOM churn (SPAs mutate constantly) into at most one
+  // scan per `ms`.
+  function debounce(fn, ms) {
+    let queued = false;
+    return () => {
+      if (queued) return;
+      queued = true;
+      setTimeout(() => {
+        queued = false;
+        fn();
+      }, ms);
+    };
+  }
+
+  // Background-images can't be reliably targeted by CSS selectors alone, so
+  // this scans computed style and tags real matches for gray.css to paint.
+  // Checks for an actual url(...) rather than "!== 'none'": a CSS gradient
+  // also computes non-"none" despite having no image to hide — was painting
+  // a solid box over gradient-highlighted plain text (Google's AI Overview
+  // citations use one). DNR blocks the bytes regardless of scan timing, so
+  // lag only risks a briefly blank box, never the real image.
   function scanBackgroundImages() {
     if (root.getAttribute("data-gray") === "off") return;
-    for (const el of document.querySelectorAll("*:not([data-gray-bg])")) {
-      if (getComputedStyle(el).backgroundImage !== "none") el.setAttribute("data-gray-bg", "");
+    for (const el of document.querySelectorAll("*:not([data-gray-bg]):not([data-gray-skip])")) {
+      if (!/url\(/.test(getComputedStyle(el).backgroundImage)) continue;
+      const rect = el.getBoundingClientRect();
+      if (rect.width === 0 || rect.height === 0) continue; // not rendered yet; re-check next scan
+      el.setAttribute(isIconSized(rect) ? "data-gray-skip" : "data-gray-bg", "");
     }
   }
 
-  let scanQueued = false;
-  function queueScan() {
-    if (scanQueued) return;
-    scanQueued = true;
-    setTimeout(() => {
-      scanQueued = false;
-      scanBackgroundImages();
-    }, 200);
+  // Plain blocked <img>s have no size info at block time (DNR blocks before
+  // any bytes exist), so this checks size after layout instead and skips the
+  // solid box on icon-sized results — still blocked either way, just falls
+  // back to the browser's small broken-image glyph. Excludes data:/blob:,
+  // which go through the wrap-for-color overlay path below instead.
+  function scanIconSizes() {
+    if (root.getAttribute("data-gray") === "off") return;
+    for (const img of document.querySelectorAll(
+      'img:not([src^="data:"]):not([src^="blob:"]):not([data-gray-skip]):not([data-gray-show])',
+    )) {
+      const rect = img.getBoundingClientRect();
+      if (rect.width === 0 || rect.height === 0) continue; // not laid out yet; re-check next scan
+      if (isIconSized(rect)) img.setAttribute("data-gray-skip", "");
+    }
   }
 
-  queueScan();
-  new MutationObserver(queueScan).observe(root, { childList: true, subtree: true });
+  // data:/blob: images and video can't be network-blocked, so gray.css's
+  // filter:contrast(0) is a zero-latency safety net that always applies
+  // instantly — but a filter can only flatten toward neutral, never a custom
+  // hue. This wraps matching elements and layers an opaque --gray-color
+  // overlay on top to show the real color; pointer-events:none lets clicks
+  // and video's native controls pass straight through to the real element.
+  function wrapForColor(el) {
+    if (el.dataset.grayWrapped !== undefined) return;
+    el.dataset.grayWrapped = "";
+
+    const cs = getComputedStyle(el);
+    const wrapper = document.createElement("span");
+    wrapper.style.cssText =
+      `position: relative; display: ${cs.display === "inline" ? "inline-block" : cs.display}; ` +
+      `width: ${cs.width}; height: ${cs.height}; vertical-align: ${cs.verticalAlign};`;
+    el.parentNode.insertBefore(wrapper, el);
+    wrapper.appendChild(el);
+
+    const overlay = document.createElement("span");
+    overlay.setAttribute("data-gray-overlay", "");
+    wrapper.appendChild(overlay);
+  }
+
+  function scanColorTargets() {
+    if (root.getAttribute("data-gray") === "off") return;
+    for (const el of document.querySelectorAll(
+      'img[src^="data:"]:not([data-gray-wrapped]), img[src^="blob:"]:not([data-gray-wrapped]), video:not([data-gray-wrapped])',
+    )) {
+      wrapForColor(el);
+    }
+  }
+
+  // One observer drives all three scans. Background/icon scans are
+  // debounced (no timing pressure either way); scanColorTargets runs
+  // undebounced since data:/blob:/video content is already loaded locally, so
+  // minimizing the neutral-gray preview window before the real color lands
+  // actually matters there. attributeFilter covers class/style (background-
+  // image toggled on after initial render) and src (a blob: URL assigned to
+  // an existing placeholder <img> after a fetch resolves) — childList/subtree
+  // alone would miss both.
+  const queueBackgroundScan = debounce(scanBackgroundImages, 200);
+  const queueIconScan = debounce(scanIconSizes, 200);
+  function onMutate() {
+    queueBackgroundScan();
+    queueIconScan();
+    scanColorTargets();
+  }
+  onMutate();
+  new MutationObserver(onMutate).observe(root, {
+    childList: true,
+    subtree: true,
+    attributes: true,
+    attributeFilter: ["class", "style", "src"],
+  });
 
   // Mute video. Media events don't bubble, but capture-phase listeners still
   // see them, so two document-level listeners cover every video, including

@@ -2,8 +2,10 @@
    No filter here, or contrast(0) would flatten the alt text to gray-on-gray.
    --gray-color is set at runtime by gray.js from the user's chosen box
    color (dashboard); the fallback keeps the right color from first paint,
-   before that JS has had a chance to run. */
-html:not([data-gray="off"]) img:not([data-gray-show]) {
+   before that JS has had a chance to run. data-gray-skip (added after layout,
+   by gray.js) excludes icon-sized images, which read as broken rather than
+   intentional when boxed solid. */
+html:not([data-gray="off"]) img:not([data-gray-show]):not([data-gray-skip]) {
   background-color: var(--gray-color, #9c9086) !important;
   color: #1a1a1a;
 }
@@ -12,9 +14,10 @@ html:not([data-gray="off"]) img:not([data-gray-show]) {
    need flattening, and so does video, which DNR never blocks. contrast(0)
    forces every opaque pixel to flat neutral gray (~#808080) regardless of
    --gray-color — it operates on the image's own pixel values, not the CSS
-   background — so the custom color only actually shows through on fully
-   transparent regions here. Not fixable without a canvas/blend-mode
-   workaround for what's already a documented edge case (see plan). */
+   background — so on its own the custom color would only show through fully
+   transparent regions. This rule stays anyway as a zero-latency, JS-free
+   safety net; gray.js layers an overlay on top (see [data-gray-overlay]
+   below) to actually show the real color shortly after. */
 html:not([data-gray="off"]) img[src^="data:"]:not([data-gray-show]),
 html:not([data-gray="off"]) img[src^="blob:"]:not([data-gray-show]),
 html:not([data-gray="off"]) video:not([data-gray-show]) {
@@ -39,4 +42,19 @@ html:not([data-gray="off"]) img:not([data-gray-show]),
 html:not([data-gray="off"]) [style*="background-image"]:not([data-gray-show]),
 html:not([data-gray="off"]) [data-gray-bg]:not([data-gray-show]) {
   cursor: pointer;
+}
+
+/* Overlay gray.js layers on top of wrapped video/data:/blob: elements to show
+   the actual chosen color, since contrast(0) above can only flatten toward
+   neutral. pointer-events:none lets clicks and video controls pass through
+   to the real element underneath. Hidden when the wrapped image has been
+   revealed; video is never revealable, so its overlay never gets this. */
+[data-gray-overlay] {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: var(--gray-color, #9c9086);
+}
+img[data-gray-show] + [data-gray-overlay] {
+  display: none;
 }
