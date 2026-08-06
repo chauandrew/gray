@@ -76,13 +76,24 @@
       if (img.hasAttribute("data-gray-show")) {
         // Re-hide: put the block back in place.
         img.removeAttribute("data-gray-show");
-        if (img.dataset.graySrc) {
-          img.src = img.dataset.graySrc;
+        const revealedUrl = img.dataset.graySrc;
+        if (revealedUrl) {
           delete img.dataset.graySrc;
-        }
-        if (img.dataset.graySrcset !== undefined) {
-          img.srcset = img.dataset.graySrcset;
-          delete img.dataset.graySrcset;
+          const reload = () => {
+            if (img.dataset.graySrcset !== undefined) {
+              img.srcset = img.dataset.graySrcset;
+              delete img.dataset.graySrcset;
+            }
+            // img.src already equals revealedUrl (reveal set them equal) —
+            // reassigning the same string is a no-op, no new fetch happens,
+            // so the already-loaded photo would just keep displaying
+            // regardless of the allow-rule. Clear first to force a real
+            // reload. Waits for "hide"'s response so the allow-rule is
+            // actually gone before the re-fetch, or this races it.
+            img.removeAttribute("src");
+            img.src = revealedUrl;
+          };
+          chrome.runtime.sendMessage({ type: "hide", url: revealedUrl }).then(reload).catch(reload);
         }
         return;
       }
@@ -145,7 +156,14 @@
   function scanBackgroundImages() {
     if (root.getAttribute("data-gray") === "off") return;
     for (const el of document.querySelectorAll("*:not([data-gray-bg]):not([data-gray-skip])")) {
-      if (!/url\(/.test(getComputedStyle(el).backgroundImage)) continue;
+      const bg = getComputedStyle(el).backgroundImage;
+      // data: URIs make no network request — nothing was blocked, nothing to
+      // hide — and are almost always a small decorative icon (a search bar's
+      // magnifying glass, say) rendered inside a much larger container, so
+      // the container's size says nothing about the icon's actual size.
+      // Skipping them entirely avoids painting a solid box over functional
+      // UI chrome.
+      if (!/url\(/.test(bg) || /url\(["']?data:/.test(bg)) continue;
       const rect = el.getBoundingClientRect();
       if (rect.width === 0 || rect.height === 0) continue; // not rendered yet; re-check next scan
       el.setAttribute(isIconSized(rect) ? "data-gray-skip" : "data-gray-bg", "");

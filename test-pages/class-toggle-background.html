@@ -1,0 +1,100 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Fixture: class-toggle-background</title>
+    <style>
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        max-width: 640px;
+        margin: 40px auto;
+        padding: 0 20px;
+      }
+      .info {
+        background: #f5f5f5;
+        border-radius: 8px;
+        padding: 14px 18px;
+        font-size: 14px;
+        margin-bottom: 24px;
+      }
+      .info h1 {
+        font-size: 16px;
+        margin: 0 0 8px;
+      }
+      .test-area {
+        border: 2px dashed #ccc;
+        padding: 20px;
+      }
+      .card {
+        width: 300px;
+        height: 150px;
+        color: white;
+        display: flex;
+        align-items: flex-end;
+        padding: 12px;
+        font-weight: 600;
+        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+        background: #ddd;
+      }
+      /* This rule only applies once JS adds "loaded" — simulates an SPA
+         component pre-rendering an empty container, then toggling a class
+         after data arrives, with no node ever added or removed. */
+      .card.loaded {
+        background-image: url("assets/photo-inline.png");
+      }
+      #status {
+        font-family: monospace;
+        font-size: 13px;
+        margin-top: 8px;
+        color: #666;
+      }
+      button {
+        margin-top: 8px;
+        font-size: 13px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="info">
+      <h1>Class toggled onto an already-mounted node</h1>
+      <p>
+        <strong>Pattern:</strong> a container exists in the DOM from page load
+        with no background-image at all. ~1s later, JS adds a class that makes
+        a stylesheet rule apply a real background-image — no node is added or
+        removed, only a class attribute changes.
+      </p>
+      <p>
+        <strong>Expected:</strong> nothing happens for the first second (there's
+        no image yet — nothing to block or box). After the class is added, the
+        card should get boxed in your chosen color within about 200ms.
+      </p>
+      <p>
+        <strong>Bug if:</strong> the card never gets boxed after the class is
+        added — it would mean the mutation observer isn't watching attribute
+        changes, only added/removed nodes.
+      </p>
+      <p><strong>Real-world source:</strong> LinkedIn promo cards.</p>
+    </div>
+    <div class="test-area">
+      <div class="card" id="card">Sponsored</div>
+      <div id="status">status: not loaded yet</div>
+      <button id="retrigger">Reset and re-trigger</button>
+    </div>
+    <script>
+      const card = document.getElementById("card");
+      const status = document.getElementById("status");
+
+      function run() {
+        card.classList.remove("loaded");
+        status.textContent = "status: not loaded yet";
+        setTimeout(() => {
+          card.classList.add("loaded");
+          status.textContent = "status: class added at " + new Date().toLocaleTimeString();
+        }, 1000);
+      }
+
+      document.getElementById("retrigger").addEventListener("click", run);
+      run();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,18 @@
+{
+  "name": "gray-extension-tests",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Cypress test harness for the Gray Chrome extension's test-pages fixtures",
+  "scripts": {
+    "serve": "http-server test-pages -p 8080 -s",
+    "cy:run": "cypress run --browser chrome-for-testing",
+    "cy:open": "cypress open --browser chrome-for-testing",
+    "test": "start-server-and-test serve http://localhost:8080 cy:run"
+  },
+  "devDependencies": {
+    "@puppeteer/browsers": "^3.0.0",
+    "cypress": "^15.0.0",
+    "http-server": "^14.0.0",
+    "start-server-and-test": "^3.0.0"
+  }
+}

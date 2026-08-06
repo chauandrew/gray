@@ -1,0 +1,59 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Fixture: data-uri-image</title>
+    <style>
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        max-width: 640px;
+        margin: 40px auto;
+        padding: 0 20px;
+      }
+      .info {
+        background: #f5f5f5;
+        border-radius: 8px;
+        padding: 14px 18px;
+        font-size: 14px;
+        margin-bottom: 24px;
+      }
+      .info h1 {
+        font-size: 16px;
+        margin: 0 0 8px;
+      }
+      .test-area {
+        border: 2px dashed #ccc;
+        padding: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="info">
+      <h1>Large data: URI &lt;img&gt;</h1>
+      <p>
+        <strong>Pattern:</strong> a 200×150 <code>&lt;img&gt;</code> whose
+        <code>src</code> is a base64-encoded PNG (a solid blue square, no real
+        photo content, generated for this fixture). <code>data:</code> images
+        can't be network-blocked — the browser decodes them locally — so this
+        exercises the fallback path instead.
+      </p>
+      <p>
+        <strong>Expected:</strong> two-stage: the image should flatten to
+        neutral gray essentially instantly (the CSS-only <code>contrast(0)</code>
+        safety net), then within a short moment upgrade to your actual chosen
+        box color (the JS-driven overlay). Click to reveal should show the real
+        blue square; click again re-hides it.
+      </p>
+      <p><strong>Bug if:</strong> the real blue square is ever visible before either stage kicks in, or the color never upgrades past neutral gray.</p>
+      <p><strong>Real-world source:</strong> pages that inline above-the-fold images as base64 for performance.</p>
+    </div>
+    <div class="test-area">
+      <img
+        src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAACWCAIAAAAUvlBOAAABIUlEQVR42u3SMQ0AAAgEsZeIMIQhCwOMjE2q4HKpHngXCTAWxsJYYCyMhbHAWBgLY4GxMBbGAmNhLIwFxsJYGAuMhbEwFhgLY2EsMBbGwlhgLIyFscBYGAtjgbEwFsYCY2EsjAXGwlgYC4yFsTAWGAtjYSwwFsbCWGAsjIWxwFgYC2OBsTAWxgJjYSyMBcbCWBgLjIWxMBYYC2NhLDAWxsJYYCyMhbHAWBgLY4GxMBbGAmNhLIyFsVTAWBgLY4GxMBbGAmNhLIwFxsJYGAuMhbEwFhgLY2EsMBbGwlhgLIyFscBYGAtjgbEwFsYCY2EsjAXGwlgYC4yFsTAWGAtjYSwwFsbCWGAsjIWxwFgYC2OBsTAWxgJjYSyMBcbCWBgLbgtdY04BhJphiwAAAABJRU5ErkJggg=="
+        width="200"
+        height="150"
+        alt="A solid blue test image"
+      />
+    </div>
+  </body>
+</html>

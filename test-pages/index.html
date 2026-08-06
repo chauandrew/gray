@@ -1,0 +1,107 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Gray — test fixtures</title>
+    <style>
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        max-width: 640px;
+        margin: 40px auto;
+        padding: 0 20px;
+        color: #1a1a1a;
+      }
+      h1 {
+        font-size: 20px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 16px;
+      }
+      th,
+      td {
+        text-align: left;
+        padding: 8px 10px;
+        border-bottom: 1px solid #ddd;
+        font-size: 14px;
+        vertical-align: top;
+      }
+      th {
+        color: #666;
+        font-weight: 600;
+      }
+      code {
+        background: #f0f0f0;
+        padding: 1px 5px;
+        border-radius: 3px;
+        font-size: 13px;
+      }
+      .net {
+        color: #a35;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Gray — test fixtures</h1>
+    <p>
+      One page per bug pattern found this session. Load with the extension
+      enabled, refresh each page, and compare against "Expected" in the
+      page itself. <span class="net">Marked pages</span> need real internet
+      access to a hosted image/video — the blocking behavior itself doesn't,
+      but the click-to-reveal / playback checks do.
+    </p>
+    <table>
+      <tr>
+        <th>Fixture</th>
+        <th>Pattern</th>
+        <th>Real-world source</th>
+      </tr>
+      <tr>
+        <td><a href="baseline-network-image.html">baseline-network-image</a> <span class="net">●</span></td>
+        <td>Plain blocked <code>&lt;img&gt;</code>, control case</td>
+        <td>any normal photo</td>
+      </tr>
+      <tr>
+        <td><a href="small-favicon.html">small-favicon</a></td>
+        <td>Icon-sized blocked <code>&lt;img&gt;</code></td>
+        <td>Google search result favicon</td>
+      </tr>
+      <tr>
+        <td><a href="gradient-highlight.html">gradient-highlight</a></td>
+        <td>CSS gradient mistaken for a background-image</td>
+        <td>Google AI Overview citation highlight</td>
+      </tr>
+      <tr>
+        <td><a href="inline-style-background.html">inline-style-background</a></td>
+        <td>Inline <code>style="background-image"</code>, no JS scan needed</td>
+        <td>generic hero/card pattern</td>
+      </tr>
+      <tr>
+        <td><a href="class-toggle-background.html">class-toggle-background</a></td>
+        <td>Background-image class added after mount, no childList mutation</td>
+        <td>LinkedIn promo card</td>
+      </tr>
+      <tr>
+        <td><a href="data-uri-icon.html">data-uri-icon</a></td>
+        <td>Small data: URI icon inside a large container</td>
+        <td>Gmail search bar</td>
+      </tr>
+      <tr>
+        <td><a href="data-uri-image.html">data-uri-image</a></td>
+        <td>Large data: URI &lt;img&gt;, contrast(0) → overlay upgrade</td>
+        <td>inlined above-the-fold images</td>
+      </tr>
+      <tr>
+        <td><a href="delayed-blob-image.html">delayed-blob-image</a></td>
+        <td><code>blob:</code> src assigned after a delayed fetch</td>
+        <td>client-side image processing / lazy loaders</td>
+      </tr>
+      <tr>
+        <td><a href="video.html">video</a> <span class="net">●</span></td>
+        <td>Video color-overlay + mute + controls stay clickable</td>
+        <td>any autoplay embed</td>
+      </tr>
+    </table>
+  </body>
+</html>
