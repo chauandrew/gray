@@ -1,0 +1,103 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Fixture: delayed-blob-image</title>
+    <style>
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        max-width: 640px;
+        margin: 40px auto;
+        padding: 0 20px;
+      }
+      .info {
+        background: #f5f5f5;
+        border-radius: 8px;
+        padding: 14px 18px;
+        font-size: 14px;
+        margin-bottom: 24px;
+      }
+      .info h1 {
+        font-size: 16px;
+        margin: 0 0 8px;
+      }
+      .test-area {
+        border: 2px dashed #ccc;
+        padding: 20px;
+      }
+      img {
+        width: 200px;
+        height: 150px;
+        display: block;
+      }
+      #status {
+        font-family: monospace;
+        font-size: 13px;
+        margin-top: 8px;
+        color: #666;
+      }
+      button {
+        margin-top: 8px;
+        font-size: 13px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="info">
+      <h1><code>blob:</code> src assigned after a delayed fetch</h1>
+      <p>
+        <strong>Pattern:</strong> an <code>&lt;img&gt;</code> starts with no
+        <code>src</code> at all. ~1s later, JS builds a <code>Blob</code>
+        (simulating a resolved <code>fetch()</code>) and assigns
+        <code>img.src = URL.createObjectURL(blob)</code> — no new node, just an
+        attribute change on an existing element.
+      </p>
+      <p>
+        <strong>Expected:</strong> nothing for the first second (no src, nothing
+        to flatten or box). Once the <code>blob:</code> src is assigned, it
+        should flatten to neutral gray immediately, then upgrade to your chosen
+        box color shortly after — same two-stage behavior as the data-URI case.
+      </p>
+      <p>
+        <strong>Bug if:</strong> after assignment, the image stays at neutral
+        gray and never upgrades to the chosen color — it would mean the
+        <code>attributeFilter: ["src"]</code> watch isn't catching src changes
+        on an existing node.
+      </p>
+      <p><strong>Real-world source:</strong> client-side image processing / lazy-loaders that fetch then blob-assign.</p>
+    </div>
+    <div class="test-area">
+      <img id="target" alt="Delayed blob image" />
+      <div id="status">status: no src yet</div>
+      <button id="retrigger">Reset and re-trigger</button>
+    </div>
+    <script>
+      const target = document.getElementById("target");
+      const status = document.getElementById("status");
+      let lastUrl = null;
+
+      function run() {
+        if (lastUrl) URL.revokeObjectURL(lastUrl);
+        target.removeAttribute("src");
+        status.textContent = "status: no src yet";
+
+        setTimeout(() => {
+          const canvas = document.createElement("canvas");
+          canvas.width = 200;
+          canvas.height = 150;
+          const ctx = canvas.getContext("2d");
+          ctx.fillStyle = "#c0504d";
+          ctx.fillRect(0, 0, 200, 150);
+          canvas.toBlob((blob) => {
+            lastUrl = URL.createObjectURL(blob);
+            target.src = lastUrl;
+            status.textContent = "status: blob src assigned at " + new Date().toLocaleTimeString();
+          });
+        }, 1000);
+      }
+
+      document.getElementById("retrigger").addEventListener("click", run);
+      run();
+    </script>
+  </body>
+</html>

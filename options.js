@@ -4,26 +4,9 @@ const addForm = document.getElementById("addForm");
 const ruleInput = document.getElementById("ruleInput");
 const rulesEl = document.getElementById("rules");
 const emptyEl = document.getElementById("empty");
-const colorSwatchesEl = document.getElementById("colorSwatches");
 
-// renderStat comes from stat.js (loaded before this file in options.html).
-
-const GRAY_COLORS = ["#808080", "#9c9086", "#756b60", "#7c868f", "#869383"];
-const DEFAULT_GRAY_COLOR = "#9c9086"; // matches the fallback baked into gray.css
-
-function renderColorSwatches(selected) {
-  colorSwatchesEl.innerHTML = "";
-  for (const color of GRAY_COLORS) {
-    const btn = document.createElement("button");
-    btn.className = "swatch" + (color === selected ? " selected" : "");
-    btn.style.background = color;
-    btn.setAttribute("aria-label", color);
-    btn.addEventListener("click", () => {
-      chrome.storage.local.set({ grayColor: color });
-    });
-    colorSwatchesEl.appendChild(btn);
-  }
-}
+// renderStat comes from stat.js; GRAY_COLORS/DEFAULT_GRAY_COLOR/
+// renderColorSwatches come from colors.js (both loaded before this file).
 
 function renderRules(exemptRules) {
   rulesEl.innerHTML = "";

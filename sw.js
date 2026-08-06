@@ -5,11 +5,20 @@
 //                          path-level exempt rule (deterministic id = tab id,
 //                          so add/replace is idempotent with no lookup needed)
 //   - session, per-URL:    one-off "allow this exact image" rule from a
-//                          click-to-reveal
+//                          click-to-reveal, removed again on re-hide
 const DYNAMIC_ID_BASE = 1000;
 const PATH_SESSION_ID_BASE = 500000;
 const REVEAL_SESSION_ID_BASE = 900000;
-let nextRevealId = REVEAL_SESSION_ID_BASE;
+
+// Deterministic id from the URL (djb2-ish), not an incrementing counter, so
+// re-hide can look up and remove the exact rule a reveal added without any
+// persistent url->id map that a service-worker restart would lose (session
+// rules themselves survive a restart; an in-memory map wouldn't).
+function hashUrlToId(url) {
+  let hash = 5381;
+  for (let i = 0; i < url.length; i++) hash = (hash * 33) ^ url.charCodeAt(i);
+  return REVEAL_SESSION_ID_BASE + (Math.abs(hash) % 100000);
+}
 
 // A rule with a "/" is host+path (e.g. "google.com/maps"); domain-only rules
 // have no "/". Only domain-only rules can become DNR dynamic rules, since
@@ -99,12 +108,11 @@ function incrementBlockedCount(by) {
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === "reveal") {
-    const id = nextRevealId++;
     chrome.declarativeNetRequest
       .updateSessionRules({
         addRules: [
           {
-            id,
+            id: hashUrlToId(message.url),
             priority: 3,
             action: { type: "allow" },
             condition: { urlFilter: message.url, resourceTypes: ["image"] },
@@ -114,6 +122,20 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       .then(() => sendResponse({ ok: true }))
       .catch(() => sendResponse({ ok: false }));
     return true; // keep the message channel open for the async sendResponse
+  }
+
+  if (message.type === "hide") {
+    // Without this, re-hiding an image left its allow-rule in place forever,
+    // so the src reset on hide would just reload successfully and the real
+    // photo would show through instead of the box. Responds (rather than
+    // fire-and-forget) so the caller can wait for the removal to actually
+    // commit before re-fetching — otherwise the re-fetch can race ahead of
+    // the removal and still succeed against the rule that hasn't gone yet.
+    chrome.declarativeNetRequest
+      .updateSessionRules({ removeRuleIds: [hashUrlToId(message.url)] })
+      .then(() => sendResponse({ ok: true }))
+      .catch(() => sendResponse({ ok: false }));
+    return true;
   }
 
   if (message.type === "syncPathExemption") {

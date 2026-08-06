@@ -51,6 +51,16 @@
         font-size: 11px;
         color: #9a9a9e;
       }
+      .row-color {
+        background: #26292b;
+        border-radius: 12px;
+        padding: 12px;
+        margin-bottom: 8px;
+        text-align: center;
+      }
+      .row-color .row-label {
+        margin-bottom: 8px;
+      }
       button.dashboard {
         width: 100%;
         padding: 9px;
@@ -101,12 +111,18 @@
       </label>
     </div>
 
+    <div class="row-color">
+      <div class="row-label">Box color</div>
+      <div id="colorSwatches" style="display: flex; gap: 8px; justify-content: center;"></div>
+    </div>
+
     <button class="dashboard" id="dashboard">Manage exempt sites</button>
 
     <div id="stat">You've blocked 0 images so far.</div>
 
     <script src="match.js"></script>
     <script src="stat.js"></script>
+    <script src="colors.js"></script>
     <script src="popup.js"></script>
   </body>
 </html>
