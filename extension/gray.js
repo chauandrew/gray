@@ -154,7 +154,6 @@
   // citations use one). DNR blocks the bytes regardless of scan timing, so
   // lag only risks a briefly blank box, never the real image.
   function scanBackgroundImages() {
-    if (root.getAttribute("data-gray") === "off") return;
     for (const el of document.querySelectorAll("*:not([data-gray-bg]):not([data-gray-skip])")) {
       const bg = getComputedStyle(el).backgroundImage;
       // data: URIs make no network request — nothing was blocked, nothing to
@@ -176,7 +175,6 @@
   // back to the browser's small broken-image glyph. Excludes data:/blob:,
   // which go through the wrap-for-color overlay path below instead.
   function scanIconSizes() {
-    if (root.getAttribute("data-gray") === "off") return;
     for (const img of document.querySelectorAll(
       'img:not([src^="data:"]):not([src^="blob:"]):not([data-gray-skip]):not([data-gray-show])',
     )) {
@@ -210,7 +208,6 @@
   }
 
   function scanColorTargets() {
-    if (root.getAttribute("data-gray") === "off") return;
     for (const el of document.querySelectorAll(
       'img[src^="data:"]:not([data-gray-wrapped]), img[src^="blob:"]:not([data-gray-wrapped]), video:not([data-gray-wrapped])',
     )) {
@@ -229,6 +226,7 @@
   const queueBackgroundScan = debounce(scanBackgroundImages, 200);
   const queueIconScan = debounce(scanIconSizes, 200);
   function onMutate() {
+    if (root.getAttribute("data-gray") === "off") return;
     queueBackgroundScan();
     queueIconScan();
     scanColorTargets();
