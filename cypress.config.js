@@ -4,7 +4,7 @@ const path = require("path");
 const os = require("os");
 const fs = require("fs");
 
-const extensionPath = __dirname;
+const extensionPath = path.join(__dirname, "extension");
 
 // Stable-channel system Chrome silently restricts --load-extension (a
 // relatively recent anti-malware hardening measure — CLI-flag extension
