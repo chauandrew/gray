@@ -1,4 +1,4 @@
-const GRAY = "rgb(156, 144, 134)"; // #9c9086, the default box color
+const { GRAY } = require("../support/gray-color");
 
 // Cypress's AUT iframe renders any failed <img> load (blocked or a plain
 // 404, verified against both) as display:none regardless of width/height —

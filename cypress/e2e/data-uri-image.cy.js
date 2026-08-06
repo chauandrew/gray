@@ -1,4 +1,4 @@
-const GRAY = "rgb(156, 144, 134)";
+const { GRAY } = require("../support/gray-color");
 
 describe("data-uri-image", () => {
   it("flattens to neutral instantly, then upgrades to the real color", () => {

@@ -1,4 +1,4 @@
-const GRAY = "rgb(156, 144, 134)";
+const { GRAY } = require("../support/gray-color");
 
 describe("class-toggle-background", () => {
   it("has no box before the delayed class is added", () => {

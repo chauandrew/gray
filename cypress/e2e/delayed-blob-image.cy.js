@@ -1,4 +1,4 @@
-const GRAY = "rgb(156, 144, 134)";
+const { GRAY } = require("../support/gray-color");
 
 describe("delayed-blob-image", () => {
   it("is untouched before the blob src is assigned", () => {

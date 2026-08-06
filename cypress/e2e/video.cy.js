@@ -1,4 +1,4 @@
-const GRAY = "rgb(156, 144, 134)";
+const { GRAY } = require("../support/gray-color");
 
 describe("video", () => {
   it("shows the real box color, and stays clickable through the overlay", () => {

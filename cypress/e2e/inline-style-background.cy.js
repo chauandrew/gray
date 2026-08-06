@@ -1,4 +1,4 @@
-const GRAY = "rgb(156, 144, 134)";
+const { GRAY } = require("../support/gray-color");
 
 describe("inline-style-background", () => {
   it("boxes an inline style background-image, no scan delay needed", () => {
