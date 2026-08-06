@@ -8,6 +8,7 @@
 html:not([data-gray="off"]) img:not([data-gray-show]):not([data-gray-skip]) {
   background-color: var(--gray-color, #9c9086) !important;
   color: #1a1a1a;
+  cursor: pointer;
 }
 
 /* data: and blob: images bypass declarativeNetRequest entirely, so they still
@@ -36,11 +37,6 @@ html:not([data-gray="off"]) [style*="background-image"]:not([data-gray-show]),
 html:not([data-gray="off"]) [data-gray-bg]:not([data-gray-show]) {
   background-image: none !important;
   background-color: var(--gray-color, #9c9086) !important;
-}
-
-html:not([data-gray="off"]) img:not([data-gray-show]),
-html:not([data-gray="off"]) [style*="background-image"]:not([data-gray-show]),
-html:not([data-gray="off"]) [data-gray-bg]:not([data-gray-show]) {
   cursor: pointer;
 }
 
