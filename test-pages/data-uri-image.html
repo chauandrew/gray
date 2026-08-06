@@ -41,8 +41,7 @@
         <strong>Expected:</strong> two-stage: the image should flatten to
         neutral gray essentially instantly (the CSS-only <code>contrast(0)</code>
         safety net), then within a short moment upgrade to your actual chosen
-        box color (the JS-driven overlay). Click to reveal should show the real
-        blue square; click again re-hides it.
+        box color (the JS-driven overlay).
       </p>
       <p><strong>Bug if:</strong> the real blue square is ever visible before either stage kicks in, or the color never upgrades past neutral gray.</p>
       <p><strong>Real-world source:</strong> pages that inline above-the-fold images as base64 for performance.</p>
