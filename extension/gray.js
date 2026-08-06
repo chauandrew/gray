@@ -61,72 +61,6 @@
     // Stale tab, extension context already gone. Nothing to recover into.
   }
 
-  // Click-to-reveal. One capture-phase listener on document so dynamically
-  // added images need no per-element bookkeeping.
-  document.addEventListener(
-    "click",
-    (e) => {
-      const img = e.target.closest("img");
-      if (!img) return;
-      if (e.ctrlKey || e.metaKey || e.shiftKey || e.button !== 0) return; // let modified clicks through (open in new tab, etc.)
-
-      e.preventDefault();
-      e.stopPropagation();
-
-      if (img.hasAttribute("data-gray-show")) {
-        // Re-hide: put the block back in place.
-        img.removeAttribute("data-gray-show");
-        const revealedUrl = img.dataset.graySrc;
-        if (revealedUrl) {
-          delete img.dataset.graySrc;
-          const reload = () => {
-            if (img.dataset.graySrcset !== undefined) {
-              img.srcset = img.dataset.graySrcset;
-              delete img.dataset.graySrcset;
-            }
-            // img.src already equals revealedUrl (reveal set them equal) —
-            // reassigning the same string is a no-op, no new fetch happens,
-            // so the already-loaded photo would just keep displaying
-            // regardless of the allow-rule. Clear first to force a real
-            // reload. Waits for "hide"'s response so the allow-rule is
-            // actually gone before the re-fetch, or this races it.
-            img.removeAttribute("src");
-            img.src = revealedUrl;
-          };
-          chrome.runtime.sendMessage({ type: "hide", url: revealedUrl }).then(reload).catch(reload);
-        }
-        return;
-      }
-
-      const url = img.currentSrc || img.src;
-      if (!url || url.startsWith("data:") || url.startsWith("blob:")) {
-        // No network request involved (data:/blob:), or nothing to reveal.
-        // contrast(0) filter handles these purely via the data-gray-show toggle.
-        img.setAttribute("data-gray-show", "");
-        return;
-      }
-
-      // Stash and drop srcset first, or the browser may pick a candidate URL
-      // the session allow-rule doesn't match.
-      if (img.srcset) {
-        img.dataset.graySrcset = img.srcset;
-        img.removeAttribute("srcset");
-      }
-      img.dataset.graySrc = img.src;
-
-      chrome.runtime
-        .sendMessage({ type: "reveal", url })
-        .then(() => {
-          img.setAttribute("data-gray-show", "");
-          // Re-assigning the same src string doesn't retrigger a load.
-          img.removeAttribute("src");
-          img.src = url;
-        })
-        .catch(() => {}); // stale tab after an extension reload; refreshing the page fixes it
-    },
-    true,
-  );
-
   // Shared by the two scans below: a solid box reads as an intentional
   // stand-in for a photo, but on a favicon/logo-sized element it just looks
   // broken.
@@ -176,7 +110,7 @@
   // which go through the wrap-for-color overlay path below instead.
   function scanIconSizes() {
     for (const img of document.querySelectorAll(
-      'img:not([src^="data:"]):not([src^="blob:"]):not([data-gray-skip]):not([data-gray-show])',
+      'img:not([src^="data:"]):not([src^="blob:"]):not([data-gray-skip])',
     )) {
       const rect = img.getBoundingClientRect();
       if (rect.width === 0 || rect.height === 0) continue; // not laid out yet; re-check next scan
@@ -243,7 +177,7 @@
   // see them, so two document-level listeners cover every video, including
   // ones inside same-origin-matched iframes (all_frames in the manifest).
   const mute = (e) => {
-    if (!e.target.hasAttribute("data-gray-show")) e.target.muted = true;
+    e.target.muted = true;
   };
   document.addEventListener("play", mute, true);
   document.addEventListener("volumechange", mute, true); // players restore saved volume after load
@@ -260,7 +194,6 @@
       const img = e.target;
       if (img.tagName !== "IMG") return;
       if (root.getAttribute("data-gray") === "off") return; // exempt page, not our doing
-      if (img.hasAttribute("data-gray-show")) return; // user revealed it; a later failure isn't ours
       chrome.runtime.sendMessage({ type: "incrementBlocked", count: 1 }).catch(() => {});
     },
     true,

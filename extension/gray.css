@@ -5,10 +5,9 @@
    before that JS has had a chance to run. data-gray-skip (added after layout,
    by gray.js) excludes icon-sized images, which read as broken rather than
    intentional when boxed solid. */
-html:not([data-gray="off"]) img:not([data-gray-show]):not([data-gray-skip]) {
+html:not([data-gray="off"]) img:not([data-gray-skip]) {
   background-color: var(--gray-color, #9c9086) !important;
   color: #1a1a1a;
-  cursor: pointer;
 }
 
 /* data: and blob: images bypass declarativeNetRequest entirely, so they still
@@ -19,9 +18,9 @@ html:not([data-gray="off"]) img:not([data-gray-show]):not([data-gray-skip]) {
    transparent regions. This rule stays anyway as a zero-latency, JS-free
    safety net; gray.js layers an overlay on top (see [data-gray-overlay]
    below) to actually show the real color shortly after. */
-html:not([data-gray="off"]) img[src^="data:"]:not([data-gray-show]),
-html:not([data-gray="off"]) img[src^="blob:"]:not([data-gray-show]),
-html:not([data-gray="off"]) video:not([data-gray-show]) {
+html:not([data-gray="off"]) img[src^="data:"],
+html:not([data-gray="off"]) img[src^="blob:"],
+html:not([data-gray="off"]) video {
   filter: contrast(0) !important;
   background-color: var(--gray-color, #9c9086) !important;
 }
@@ -33,8 +32,8 @@ html:not([data-gray="off"]) video:not([data-gray-show]) {
    rule catches those too. The DNR block rule stops the bytes regardless of
    when that scan runs, so the only cost of scan lag is a briefly blank box,
    never the real image. */
-html:not([data-gray="off"]) [style*="background-image"]:not([data-gray-show]),
-html:not([data-gray="off"]) [data-gray-bg]:not([data-gray-show]) {
+html:not([data-gray="off"]) [style*="background-image"],
+html:not([data-gray="off"]) [data-gray-bg] {
   background-image: none !important;
   background-color: var(--gray-color, #9c9086) !important;
   cursor: pointer;
@@ -43,14 +42,10 @@ html:not([data-gray="off"]) [data-gray-bg]:not([data-gray-show]) {
 /* Overlay gray.js layers on top of wrapped video/data:/blob: elements to show
    the actual chosen color, since contrast(0) above can only flatten toward
    neutral. pointer-events:none lets clicks and video controls pass through
-   to the real element underneath. Hidden when the wrapped image has been
-   revealed; video is never revealable, so its overlay never gets this. */
+   to the real element underneath. */
 [data-gray-overlay] {
   position: absolute;
   inset: 0;
   pointer-events: none;
   background: var(--gray-color, #9c9086);
-}
-img[data-gray-show] + [data-gray-overlay] {
-  display: none;
 }
