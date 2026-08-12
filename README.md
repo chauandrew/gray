@@ -1,14 +1,18 @@
 # Gray
 
-A lightweight Chrome extension that blocks images and mutes video by default, everywhere, for faster, lighter, distraction-free pages.
+Gray blocks images and videos for faster, distraction-free browsing.
 
 No account, no server, no tracking. Everything lives in `chrome.storage.local` on your machine.
+
+|                         Before                          |                         After                          |
+| :-------------------------------------------------------: | :-------------------------------------------------------: |
+| ![A Wikipedia article with images loaded normally](screenshots/wikipedia-before.png) | ![The same article with Gray blocking its images](screenshots/wikipedia-after.png) |
 
 Download it from the Chrome Web Store [here](https://chromewebstore.google.com/detail/gray/gbfmmamcnlcidhdihbljlpahlbgcncof?authuser=0&hl=en)!
 
 ## Why
 
-Images and autoplaying video are most of the weight, and most of the distraction, on a typical page. Gray blocks them at the network level before they ever download, so the bytes never hit your connection, and mutes video as soon as it starts playing. Pages load faster, use less bandwidth, and stay quiet. Want images on a site you trust? Exempt it in one click.
+Images and autoplaying video are most of the weight, and most of the distraction, on a typical page. Gray blocks them at the network level before they ever download, so the bytes never hit your connection, and mutes video as soon as it starts playing. Pages load faster, use less bandwidth, and stay quiet. Want images on a site you trust? Add it to your exceptions in the dashboard.
 
 ## Features
 
@@ -28,12 +32,12 @@ Not yet published to the Chrome Web Store. To load it locally:
 1. Clone this repo.
 2. Open `chrome://extensions`.
 3. Enable **Developer mode** (top right).
-4. Click **Load unpacked** and select the `extension/` folder.
+4. Select **Load unpacked** and choose the `extension/` folder.
 
 ## Usage
 
-- Click the toolbar icon to see the current site, toggle blocking on/off globally, allow images on the current site, pick a box color, and see your running block count.
-- Click **Manage exempt sites** (or right-click the icon → Options) to open the dashboard, where you can add/remove domain or domain+path exemptions directly.
+- The toolbar icon shows the current site, a global on/off toggle, an allow-images-here toggle, box color picker, and your running block count.
+- **Manage exempt sites** (or the icon's context menu → Options) opens the dashboard, where domain and domain+path exemptions can be added or removed directly.
 
 ## How it works
 
