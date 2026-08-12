@@ -8,6 +8,8 @@ No account, no server, no tracking. Everything lives in `chrome.storage.local` o
 | :-------------------------------------------------------: | :-------------------------------------------------------: |
 | ![A Wikipedia article with images loaded normally](screenshots/wikipedia-before.png) | ![The same article with Gray blocking its images](screenshots/wikipedia-after.png) |
 
+Download it from the Chrome Web Store [here](https://chromewebstore.google.com/detail/gray/gbfmmamcnlcidhdihbljlpahlbgcncof?authuser=0&hl=en)!
+
 ## Why
 
 Images and autoplaying video are most of the weight, and most of the distraction, on a typical page. Gray blocks them at the network level before they ever download, so the bytes never hit your connection, and mutes video as soon as it starts playing. Pages load faster, use less bandwidth, and stay quiet. Want images on a site you trust? Add it to your exceptions in the dashboard.
