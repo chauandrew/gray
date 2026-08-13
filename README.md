@@ -27,7 +27,7 @@ Images and autoplaying video are most of the weight, and most of the distraction
 
 ## Install
 
-Not yet published to the Chrome Web Store. To load it locally:
+To load it locally:
 
 1. Clone this repo.
 2. Open `chrome://extensions`.
