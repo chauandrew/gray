@@ -177,6 +177,7 @@
   // see them, so two document-level listeners cover every video, including
   // ones inside same-origin-matched iframes (all_frames in the manifest).
   const mute = (e) => {
+    if (root.getAttribute("data-gray") === "off") return; // exempt page, not our doing
     e.target.muted = true;
   };
   document.addEventListener("play", mute, true);

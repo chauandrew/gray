@@ -20,4 +20,23 @@ describe("video", () => {
     });
     cy.get("video").its("0.muted").should("be.true");
   });
+
+  it("stops muting and hides the overlay once the page goes exempt", () => {
+    cy.visit("/video.html");
+    cy.get("video", { timeout: 2000 }).should("have.attr", "data-gray-wrapped");
+
+    // Mirrors what applyState() sets on an exempt/disabled page; gray.js only
+    // touches this attribute from its own storage callbacks, not on a timer,
+    // so setting it directly here is safe from being raced/overwritten.
+    cy.document().then((doc) => doc.documentElement.setAttribute("data-gray", "off"));
+
+    cy.get("video")
+      .next("[data-gray-overlay]")
+      .should("not.have.css", "background-color", GRAY);
+
+    cy.get("video").then(($video) => {
+      $video[0].dispatchEvent(new Event("play"));
+    });
+    cy.get("video").its("0.muted").should("be.false");
+  });
 });

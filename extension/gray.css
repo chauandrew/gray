@@ -42,8 +42,11 @@ html:not([data-gray="off"]) [data-gray-bg] {
 /* Overlay gray.js layers on top of wrapped video/data:/blob: elements to show
    the actual chosen color, since contrast(0) above can only flatten toward
    neutral. pointer-events:none lets clicks and video controls pass through
-   to the real element underneath. */
-[data-gray-overlay] {
+   to the real element underneath. Guarded the same as every other painted
+   rule above: once a page goes exempt, an already-wrapped element (wrapping
+   itself is permanent, see wrapForColor in gray.js) must stop showing the
+   overlay too, not just skip new ones. */
+html:not([data-gray="off"]) [data-gray-overlay] {
   position: absolute;
   inset: 0;
   pointer-events: none;
