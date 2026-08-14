@@ -5,7 +5,7 @@
    before that JS has had a chance to run. data-gray-skip (added after layout,
    by gray.js) excludes icon-sized images, which read as broken rather than
    intentional when boxed solid. */
-html:not([data-gray="off"]) img:not([data-gray-skip]) {
+html[data-gray-on] img:not([data-gray-skip]) {
   background-color: var(--gray-color, #9c9086) !important;
   color: #1a1a1a;
 }
@@ -18,9 +18,9 @@ html:not([data-gray="off"]) img:not([data-gray-skip]) {
    transparent regions. This rule stays anyway as a zero-latency, JS-free
    safety net; gray.js layers an overlay on top (see [data-gray-overlay]
    below) to actually show the real color shortly after. */
-html:not([data-gray="off"]) img[src^="data:"],
-html:not([data-gray="off"]) img[src^="blob:"],
-html:not([data-gray="off"]) video {
+html[data-gray-on] img[src^="data:"],
+html[data-gray-on] img[src^="blob:"],
+html[data-gray-on] video {
   filter: contrast(0) !important;
   background-color: var(--gray-color, #9c9086) !important;
 }
@@ -32,8 +32,8 @@ html:not([data-gray="off"]) video {
    rule catches those too. The DNR block rule stops the bytes regardless of
    when that scan runs, so the only cost of scan lag is a briefly blank box,
    never the real image. */
-html:not([data-gray="off"]) [style*="background-image"],
-html:not([data-gray="off"]) [data-gray-bg] {
+html[data-gray-on] [style*="background-image"],
+html[data-gray-on] [data-gray-bg] {
   background-image: none !important;
   background-color: var(--gray-color, #9c9086) !important;
   cursor: pointer;
@@ -42,8 +42,11 @@ html:not([data-gray="off"]) [data-gray-bg] {
 /* Overlay gray.js layers on top of wrapped video/data:/blob: elements to show
    the actual chosen color, since contrast(0) above can only flatten toward
    neutral. pointer-events:none lets clicks and video controls pass through
-   to the real element underneath. */
-[data-gray-overlay] {
+   to the real element underneath. Guarded the same as every other painted
+   rule above: once a page goes exempt, an already-wrapped element (wrapping
+   itself is permanent, see wrapForColor in gray.js) must stop showing the
+   overlay too, not just skip new ones. */
+html[data-gray-on] [data-gray-overlay] {
   position: absolute;
   inset: 0;
   pointer-events: none;
