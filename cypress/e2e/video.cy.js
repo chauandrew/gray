@@ -25,10 +25,10 @@ describe("video", () => {
     cy.visit("/video.html");
     cy.get("video", { timeout: 2000 }).should("have.attr", "data-gray-wrapped");
 
-    // Mirrors what applyState() sets on an exempt/disabled page; gray.js only
+    // Mirrors what applyState() does on an exempt/disabled page; gray.js only
     // touches this attribute from its own storage callbacks, not on a timer,
-    // so setting it directly here is safe from being raced/overwritten.
-    cy.document().then((doc) => doc.documentElement.setAttribute("data-gray", "off"));
+    // so removing it directly here is safe from being raced/overwritten.
+    cy.document().then((doc) => doc.documentElement.removeAttribute("data-gray-on"));
 
     cy.get("video")
       .next("[data-gray-overlay]")

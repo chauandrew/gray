@@ -1,6 +1,13 @@
 (() => {
   const root = document.documentElement;
 
+  // Assume on until storage says otherwise: matches the "let enabled = true"
+  // default below, and lets gray.css's html[data-gray-on] selectors paint
+  // immediately at document_start rather than waiting on the async storage
+  // read. applyState() removes this the moment it learns the page is
+  // actually exempt.
+  root.setAttribute("data-gray-on", "");
+
   // parseRule/ruleMatches come from match.js (loaded before this file in the
   // manifest's content_scripts). Deliberately matched against the frame's OWN
   // host, not the top-level page's, so this always agrees with the service
@@ -16,8 +23,8 @@
     const pathname = location.pathname;
     const exempt = !enabled || exemptRules.some((r) => ruleMatches(host, pathname, r));
 
-    if (exempt) root.setAttribute("data-gray", "off");
-    else root.removeAttribute("data-gray");
+    if (exempt) root.removeAttribute("data-gray-on");
+    else root.setAttribute("data-gray-on", "");
 
     // Domain-level rules are already enforced by a persistent dynamic DNR
     // rule regardless of this script. Path-level rules have no such native
@@ -160,7 +167,7 @@
   const queueBackgroundScan = debounce(scanBackgroundImages, 200);
   const queueIconScan = debounce(scanIconSizes, 200);
   function onMutate() {
-    if (root.getAttribute("data-gray") === "off") return;
+    if (!root.hasAttribute("data-gray-on")) return;
     queueBackgroundScan();
     queueIconScan();
     scanColorTargets();
@@ -177,7 +184,7 @@
   // see them, so two document-level listeners cover every video, including
   // ones inside same-origin-matched iframes (all_frames in the manifest).
   const mute = (e) => {
-    if (root.getAttribute("data-gray") === "off") return; // exempt page, not our doing
+    if (!root.hasAttribute("data-gray-on")) return; // exempt page, not our doing
     e.target.muted = true;
   };
   document.addEventListener("play", mute, true);
@@ -194,7 +201,7 @@
     (e) => {
       const img = e.target;
       if (img.tagName !== "IMG") return;
-      if (root.getAttribute("data-gray") === "off") return; // exempt page, not our doing
+      if (!root.hasAttribute("data-gray-on")) return; // exempt page, not our doing
       chrome.runtime.sendMessage({ type: "incrementBlocked", count: 1 }).catch(() => {});
     },
     true,
