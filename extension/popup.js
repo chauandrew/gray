@@ -3,6 +3,7 @@ const blockHereToggle = document.getElementById("blockHere");
 const hostEl = document.getElementById("host");
 const statEl = document.getElementById("stat");
 const dashboardBtn = document.getElementById("dashboard");
+const snoozeBtn = document.getElementById("snooze");
 
 let currentHost = null;
 let currentPathname = null;
@@ -61,10 +62,20 @@ async function init() {
 }
 
 enabledToggle.addEventListener("change", async () => {
+  chrome.alarms.clear("snooze"); // manual override always cancels a pending snooze
   globalEnabled = enabledToggle.checked;
   await chrome.storage.local.set({ enabled: globalEnabled });
   // Keeps "Block images here" truthful without needing to reopen the popup —
   // it depends on globalEnabled too, per the bug this same fix already covers.
+  const { exemptRules = [] } = await chrome.storage.local.get("exemptRules");
+  renderHost(exemptRules);
+});
+
+snoozeBtn.addEventListener("click", async () => {
+  await chrome.alarms.create("snooze", { delayInMinutes: 5 });
+  globalEnabled = false;
+  enabledToggle.checked = false;
+  await chrome.storage.local.set({ enabled: false });
   const { exemptRules = [] } = await chrome.storage.local.get("exemptRules");
   renderHost(exemptRules);
 });
@@ -88,10 +99,18 @@ blockHereToggle.addEventListener("change", async () => {
   await chrome.storage.local.set({ exemptRules: next });
 });
 
-chrome.storage.onChanged.addListener((changes, area) => {
+chrome.storage.onChanged.addListener(async (changes, area) => {
   if (area !== "local") return;
   if (changes.blockedCount) renderStat(statEl, changes.blockedCount.newValue);
   if (changes.grayColor) renderColorSwatches(changes.grayColor.newValue || DEFAULT_GRAY_COLOR);
+  if (changes.enabled) {
+    // Keeps a popup pinned open (e.g. via DevTools) in sync when the snooze
+    // alarm restores `enabled` in the background.
+    globalEnabled = changes.enabled.newValue !== false;
+    enabledToggle.checked = globalEnabled;
+    const { exemptRules = [] } = await chrome.storage.local.get("exemptRules");
+    renderHost(exemptRules);
+  }
 });
 
 init();

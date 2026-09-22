@@ -93,6 +93,10 @@ function incrementBlockedCount(by) {
   return counterQueue;
 }
 
+chrome.alarms.onAlarm.addListener((alarm) => {
+  if (alarm.name === "snooze") chrome.storage.local.set({ enabled: true });
+});
+
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === "syncPathExemption") {
     if (sender.tab?.id != null) syncPathExemption(sender.tab.id, message.matches);
