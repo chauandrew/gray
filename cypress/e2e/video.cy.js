@@ -27,8 +27,8 @@ describe("video", () => {
 
     // Mirrors what applyState() does on an exempt/disabled page; gray.js only
     // touches this attribute from its own storage callbacks, not on a timer,
-    // so removing it directly here is safe from being raced/overwritten.
-    cy.document().then((doc) => doc.documentElement.removeAttribute("data-gray-on"));
+    // so setting it directly here is safe from being raced/overwritten.
+    cy.document().then((doc) => doc.documentElement.setAttribute("data-gray-off", ""));
 
     cy.get("video")
       .next("[data-gray-overlay]")
@@ -37,6 +37,21 @@ describe("video", () => {
     cy.get("video").then(($video) => {
       $video[0].dispatchEvent(new Event("play"));
     });
+    cy.get("video").its("0.muted").should("be.false");
+  });
+
+  it("un-mutes a video that was force-muted before the page turned out to be exempt", () => {
+    cy.visit("/video.html");
+    cy.get("video").then(($video) => {
+      $video[0].dispatchEvent(new Event("play"));
+    });
+    cy.get("video").its("0.muted").should("be.true");
+
+    // Simulates the race: storage resolves as exempt only after a video
+    // already played and got force-muted. applyState() must undo that mute,
+    // not just stop future ones.
+    cy.document().then((doc) => doc.documentElement.setAttribute("data-gray-off", ""));
+
     cy.get("video").its("0.muted").should("be.false");
   });
 });

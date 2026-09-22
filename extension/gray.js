@@ -1,13 +1,6 @@
 (() => {
   const root = document.documentElement;
 
-  // Assume on until storage says otherwise: matches the "let enabled = true"
-  // default below, and lets gray.css's html[data-gray-on] selectors paint
-  // immediately at document_start rather than waiting on the async storage
-  // read. applyState() removes this the moment it learns the page is
-  // actually exempt.
-  root.setAttribute("data-gray-on", "");
-
   // parseRule/ruleMatches come from match.js (loaded before this file in the
   // manifest's content_scripts). Deliberately matched against the frame's OWN
   // host, not the top-level page's, so this always agrees with the service
@@ -23,8 +16,12 @@
     const pathname = location.pathname;
     const exempt = !enabled || exemptRules.some((r) => ruleMatches(host, pathname, r));
 
-    if (exempt) root.removeAttribute("data-gray-on");
-    else root.setAttribute("data-gray-on", "");
+    // data-gray-off (not data-gray-on): gray.css's default, attribute-absent
+    // state must mean "blocking active" so that a page where this script
+    // fails to inject at all still fails closed, same as the network-level
+    // DNR block does independent of this script running.
+    if (exempt) root.setAttribute("data-gray-off", "");
+    else root.removeAttribute("data-gray-off");
 
     // Domain-level rules are already enforced by a persistent dynamic DNR
     // rule regardless of this script. Path-level rules have no such native
@@ -167,7 +164,7 @@
   const queueBackgroundScan = debounce(scanBackgroundImages, 200);
   const queueIconScan = debounce(scanIconSizes, 200);
   function onMutate() {
-    if (!root.hasAttribute("data-gray-on")) return;
+    if (root.hasAttribute("data-gray-off")) return;
     queueBackgroundScan();
     queueIconScan();
     scanColorTargets();
@@ -183,12 +180,26 @@
   // Mute video. Media events don't bubble, but capture-phase listeners still
   // see them, so two document-level listeners cover every video, including
   // ones inside same-origin-matched iframes (all_frames in the manifest).
+  //
+  // mute() defaults to active before applyState()'s async storage read
+  // resolves (same "assume on" default as gray.css), so a video playing in
+  // that window can get force-muted on a page that turns out to be exempt.
+  // mutedByUs + this observer undo that the moment data-gray-off actually
+  // appears, instead of leaving the mute stuck forever.
+  const mutedByUs = new Set();
   const mute = (e) => {
-    if (!root.hasAttribute("data-gray-on")) return; // exempt page, not our doing
+    if (root.hasAttribute("data-gray-off")) return; // exempt page, not our doing
     e.target.muted = true;
+    mutedByUs.add(e.target);
   };
   document.addEventListener("play", mute, true);
   document.addEventListener("volumechange", mute, true); // players restore saved volume after load
+
+  new MutationObserver(() => {
+    if (!root.hasAttribute("data-gray-off")) return;
+    for (const el of mutedByUs) el.muted = false;
+    mutedByUs.clear();
+  }).observe(root, { attributes: true, attributeFilter: ["data-gray-off"] });
 
   // Blocked-image counter, for the popup/dashboard stat. A blocked network
   // request surfaces to the page as an ordinary failed <img> load, so this
@@ -201,7 +212,7 @@
     (e) => {
       const img = e.target;
       if (img.tagName !== "IMG") return;
-      if (!root.hasAttribute("data-gray-on")) return; // exempt page, not our doing
+      if (root.hasAttribute("data-gray-off")) return; // exempt page, not our doing
       chrome.runtime.sendMessage({ type: "incrementBlocked", count: 1 }).catch(() => {});
     },
     true,
