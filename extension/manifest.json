@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Gray",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Gray blocks images and videos for faster, distraction-free browsing.",
   "icons": {
     "16": "icons/16.png",
@@ -9,7 +9,7 @@
     "48": "icons/48.png",
     "128": "icons/128.png"
   },
-  "permissions": ["storage", "activeTab", "declarativeNetRequest"],
+  "permissions": ["storage", "activeTab", "declarativeNetRequest", "alarms"],
   "background": { "service_worker": "sw.js" },
   "action": {
     "default_popup": "popup.html",
