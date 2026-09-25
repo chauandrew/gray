@@ -20,12 +20,12 @@ Copy-paste source for the Developer Dashboard fields. Not part of the extension 
 
 **Short description** (132 char max):
 ```
-Gray blocks images and videos for faster, distraction-free browsing
+Blocks images and mutes video at the network level for faster, lighter, distraction-free pages. No account, no tracking.
 ```
 
 **Detailed description:**
 ```
-Gray blocks images and videos for faster, distraction-free browsing.
+Gray blocks images and mutes video at the network level for faster, lighter, distraction-free pages. No account, no tracking.
 
 Images and autoplaying video are most of the weight, and most of the distraction, on a typical page. Gray blocks them at the network level before they ever download, so the bytes never hit your connection, and mutes video as soon as it starts playing. Pages load faster, use less bandwidth, and stay quiet.
 

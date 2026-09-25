@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Gray",
-  "version": "0.1.2",
-  "description": "Gray blocks images and videos for faster, distraction-free browsing.",
+  "name": "Gray – Block Images & Mute Video",
+  "version": "0.1.4",
+  "description": "Blocks images and mutes video at the network level for faster, lighter, distraction-free pages. No account, no tracking.",
   "icons": {
     "16": "icons/16.png",
     "32": "icons/32.png",

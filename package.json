@@ -7,7 +7,8 @@
     "serve": "http-server test-pages -p 8080 -s",
     "cy:run": "cypress run --browser chrome-for-testing",
     "cy:open": "cypress open --browser chrome-for-testing",
-    "test": "start-server-and-test serve http://localhost:8080 cy:run"
+    "unit": "node --test extension/*.test.js",
+    "test": "npm run unit && start-server-and-test serve http://localhost:8080 cy:run"
   },
   "devDependencies": {
     "@puppeteer/browsers": "^3.0.0",

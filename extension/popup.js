@@ -3,6 +3,12 @@ const blockHereToggle = document.getElementById("blockHere");
 const hostEl = document.getElementById("host");
 const statEl = document.getElementById("stat");
 const dashboardBtn = document.getElementById("dashboard");
+const rateNudge = document.getElementById("rateNudge");
+const rateLink = document.getElementById("rateLink");
+const rateDismiss = document.getElementById("rateDismiss");
+
+const RATE_URL =
+  "https://chromewebstore.google.com/detail/gbfmmamcnlcidhdihbljlpahlbgcncof/reviews";
 
 let currentHost = null;
 let currentPathname = null;
@@ -42,12 +48,28 @@ function renderHost(exemptRules) {
   blockHereToggle.checked = globalEnabled && matchingRules.length === 0;
 }
 
+function renderRateNudge(blockedCount, rateDismissed) {
+  rateNudge.style.display = shouldShowRateNudge(blockedCount, rateDismissed) ? "flex" : "none";
+}
+
 async function init() {
   const [
-    { exemptRules = [], blockedCount = 0, enabled = true, grayColor = DEFAULT_GRAY_COLOR },
+    {
+      exemptRules = [],
+      blockedCount = 0,
+      enabled = true,
+      grayColor = DEFAULT_GRAY_COLOR,
+      rateDismissed = false,
+    },
     tab,
   ] = await Promise.all([
-    chrome.storage.local.get(["exemptRules", "blockedCount", "enabled", "grayColor"]),
+    chrome.storage.local.get([
+      "exemptRules",
+      "blockedCount",
+      "enabled",
+      "grayColor",
+      "rateDismissed",
+    ]),
     getActiveTab(),
   ]);
   currentHost = tab?.host ?? null;
@@ -58,6 +80,7 @@ async function init() {
   renderHost(exemptRules);
   renderStat(statEl, blockedCount);
   renderColorSwatches(grayColor);
+  renderRateNudge(blockedCount, rateDismissed);
 }
 
 enabledToggle.addEventListener("change", async () => {
@@ -71,6 +94,17 @@ enabledToggle.addEventListener("change", async () => {
 
 dashboardBtn.addEventListener("click", () => {
   chrome.runtime.openOptionsPage();
+});
+
+rateLink.addEventListener("click", async (e) => {
+  e.preventDefault();
+  await chrome.storage.local.set({ rateDismissed: true });
+  chrome.tabs.create({ url: RATE_URL });
+});
+
+rateDismiss.addEventListener("click", async () => {
+  await chrome.storage.local.set({ rateDismissed: true });
+  rateNudge.style.display = "none";
 });
 
 blockHereToggle.addEventListener("change", async () => {
