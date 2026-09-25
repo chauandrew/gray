@@ -15,12 +15,14 @@
         color: #f2f2f2;
         margin: 0;
         padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
       }
       header {
         display: flex;
         align-items: center;
         gap: 8px;
-        margin-bottom: 14px;
       }
       header img {
         width: 20px;
@@ -31,6 +33,36 @@
         font-size: 15px;
         font-weight: 700;
         margin: 0;
+        flex: 1;
+      }
+      #snooze {
+        margin-left: auto;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2px;
+        background: none;
+        border: none;
+        color: #9a9a9e;
+        cursor: pointer;
+        font: inherit;
+        font-size: 10px;
+        padding: 2px 4px;
+      }
+      #snooze:hover {
+        color: #f2f2f2;
+      }
+      #snooze.active {
+        color: var(--accent);
+      }
+      .snooze-icon-ring {
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        border: 1.5px solid currentColor;
+        display: flex;
+        align-items: center;
+        justify-content: center;
       }
       .row {
         display: flex;
@@ -40,7 +72,6 @@
         background: #26292b;
         border-radius: 12px;
         padding: 10px 12px;
-        margin-bottom: 8px;
       }
       .row-label {
         overflow: hidden;
@@ -55,7 +86,6 @@
         background: #26292b;
         border-radius: 12px;
         padding: 12px;
-        margin-bottom: 8px;
         text-align: center;
       }
       .row-color .row-label {
@@ -71,13 +101,22 @@
         background: var(--accent);
         color: var(--accent-text);
         cursor: pointer;
-        margin-top: 4px;
       }
       button.dashboard:hover {
         background: var(--accent-hover);
       }
+      #dashboard {
+        background: transparent;
+        color: #9a9a9e;
+        font-weight: 500;
+      }
+      #dashboard:hover {
+        background: transparent;
+        color: #f2f2f2;
+        text-decoration: underline;
+      }
       #stat {
-        margin-top: 10px;
+        margin-top: -4px;
         text-align: center;
         font-size: 12px;
         color: #9a9a9e;
@@ -88,6 +127,15 @@
     <header>
       <img src="icons/32.png" alt="" />
       <h1>Gray</h1>
+      <button id="snooze" title="Pause for 5 minutes" aria-label="Pause for 5 minutes">
+        <span class="snooze-icon-ring">
+          <svg viewBox="0 0 24 24" width="10" height="10" fill="currentColor">
+            <rect x="6" y="4" width="4" height="16" rx="1" />
+            <rect x="14" y="4" width="4" height="16" rx="1" />
+          </svg>
+        </span>
+        <span id="snoozeLabel">5 min</span>
+      </button>
     </header>
 
     <div class="row">
@@ -111,8 +159,6 @@
       </label>
     </div>
 
-    <button class="dashboard" id="snooze">Snooze 5 min</button>
-
     <div class="row-color">
       <div class="row-label">Box color</div>
       <div id="colorSwatches" style="display: flex; gap: 8px; justify-content: center;"></div>
@@ -125,6 +171,7 @@
     <script src="match.js"></script>
     <script src="stat.js"></script>
     <script src="colors.js"></script>
+    <script src="snooze.js"></script>
     <script src="popup.js"></script>
   </body>
 </html>

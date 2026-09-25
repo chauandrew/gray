@@ -20,8 +20,16 @@
     // state must mean "blocking active" so that a page where this script
     // fails to inject at all still fails closed, same as the network-level
     // DNR block does independent of this script running.
-    if (exempt) root.setAttribute("data-gray-off", "");
-    else root.removeAttribute("data-gray-off");
+    if (exempt) {
+      root.setAttribute("data-gray-off", "");
+    } else {
+      root.removeAttribute("data-gray-off");
+      // Blocking coming back on (e.g. a snooze expiring) doesn't retroactively
+      // stop images that already finished loading while it was off — DNR only
+      // blocks new requests. Wrap those like data:/blob: images so they get
+      // grayed out too instead of staying visible until the next reload.
+      scanLoadedImages();
+    }
 
     // Domain-level rules are already enforced by a persistent dynamic DNR
     // rule regardless of this script. Path-level rules have no such native
@@ -150,6 +158,23 @@
       'img[src^="data:"]:not([data-gray-wrapped]), img[src^="blob:"]:not([data-gray-wrapped]), video:not([data-gray-wrapped])',
     )) {
       wrapForColor(el);
+    }
+  }
+
+  // Plain <img src="https://...">s that already finished loading (only
+  // possible while blocking was off) get the same overlay treatment as
+  // data:/blob: images, since the background-color trick above only shows
+  // through a broken/blank image, not one that already rendered real pixels.
+  // Excludes .svg/.ico: rules.json always allows those regardless of pause
+  // state (see rule id 2), so they're not something the pause ever hid.
+  function scanLoadedImages() {
+    for (const img of document.querySelectorAll(
+      'img:not([src^="data:"]):not([src^="blob:"]):not([data-gray-wrapped])',
+    )) {
+      if (!img.complete || img.naturalWidth === 0) continue;
+      if (/\.(svg|ico)(\?|$)/i.test(img.src)) continue;
+      if (isIconSized(img.getBoundingClientRect())) continue;
+      wrapForColor(img);
     }
   }
 
