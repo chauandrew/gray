@@ -5,7 +5,7 @@ Copy-paste source for the Developer Dashboard fields. Not part of the extension 
 ## Checklist to publish
 
 1. Create a developer account at https://chrome.google.com/webstore/devconsole (one-time $5 registration fee).
-2. Zip the contents of `extension/` (the files inside it, not the folder itself or the repo root) and upload as a new item.
+2. Zip the contents of `extension/` (the files inside it, not the folder itself or the repo root) and upload as a new package version to the existing item.
 3. Fill in the **Store listing** tab using the copy below.
 4. Screenshots (1280x800) are ready in `screenshots/`.
 5. Fill in the **Privacy practices** tab:
@@ -53,6 +53,7 @@ Gray blocks images and mutes video by default on web pages, for faster, lighter 
 - `activeTab`: "Reads the active tab's URL so the popup can display and toggle whether the current site is exempt from image blocking."
 - `declarativeNetRequest`: "Blocks image network requests before they load, and adds per-site allow rules for sites the user has exempted."
 - Host permission / content script on all URLs: "Blocking and mute are default-on across every site, so the content script needs to run everywhere to paint placeholders and mute video."
+- `alarms`: "Used solely to auto-resume image blocking after a user-initiated 5-minute snooze. When the user pauses blocking from the popup, Gray schedules a single chrome.alarms timer; when it fires, it flips blocking back on. No background polling, no data collection, no network requests."
 
 **Data usage disclosure:**
 Answer **"This item does not collect user data"**: nothing is transmitted off the device. If the questionnaire forces a category selection because the content script reads page URLs/content, disclose "Website content" and "Web history" as accessed-but-not-collected, both scoped to "used only locally, not transmitted or stored off-device."
