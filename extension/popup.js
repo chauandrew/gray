@@ -6,6 +6,8 @@ const dashboardBtn = document.getElementById("dashboard");
 const rateNudge = document.getElementById("rateNudge");
 const rateLink = document.getElementById("rateLink");
 const rateDismiss = document.getElementById("rateDismiss");
+const snoozeBtn = document.getElementById("snooze");
+const snoozeLabel = document.getElementById("snoozeLabel");
 
 const RATE_URL =
   "https://chromewebstore.google.com/detail/gbfmmamcnlcidhdihbljlpahlbgcncof/reviews";
@@ -13,6 +15,46 @@ const RATE_URL =
 let currentHost = null;
 let currentPathname = null;
 let globalEnabled = true;
+let countdownInterval = null;
+
+const DEFAULT_SNOOZE_LABEL = "5 min";
+
+function formatRemaining(ms) {
+  const totalSeconds = Math.max(0, Math.round(ms / 1000));
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${minutes}:${String(seconds).padStart(2, "0")}`;
+}
+
+function setSnoozeIdle() {
+  snoozeBtn.classList.remove("active");
+  snoozeBtn.title = "Pause for 5 minutes";
+  snoozeLabel.textContent = DEFAULT_SNOOZE_LABEL;
+}
+
+async function refreshCountdown() {
+  const alarm = await chrome.alarms.get("snooze");
+  clearInterval(countdownInterval);
+
+  if (!alarm) {
+    setSnoozeIdle();
+    return;
+  }
+
+  snoozeBtn.classList.add("active");
+  const tick = () => {
+    const remaining = alarm.scheduledTime - Date.now();
+    if (remaining <= 0) {
+      clearInterval(countdownInterval);
+      setSnoozeIdle();
+      return;
+    }
+    snoozeBtn.title = "Resume blocking now";
+    snoozeLabel.textContent = formatRemaining(remaining);
+  };
+  tick();
+  countdownInterval = setInterval(tick, 1000);
+}
 
 // parseRule/ruleMatches come from match.js; renderStat from stat.js (both
 // loaded before this file in popup.html). Sharing them is what fixed the bug
@@ -81,15 +123,33 @@ async function init() {
   renderStat(statEl, blockedCount);
   renderColorSwatches(grayColor);
   renderRateNudge(blockedCount, rateDismissed);
+  refreshCountdown();
 }
 
 enabledToggle.addEventListener("change", async () => {
+  chrome.alarms.clear("snooze"); // manual override always cancels a pending snooze
   globalEnabled = enabledToggle.checked;
   await chrome.storage.local.set({ enabled: globalEnabled });
   // Keeps "Block images here" truthful without needing to reopen the popup —
   // it depends on globalEnabled too, per the bug this same fix already covers.
   const { exemptRules = [] } = await chrome.storage.local.get("exemptRules");
   renderHost(exemptRules);
+  refreshCountdown();
+});
+
+snoozeBtn.addEventListener("click", async () => {
+  const pending = await chrome.alarms.get("snooze");
+  // nextSnoozeAction (snooze.js) is the source of truth for which branch
+  // runs; a second click while paused cancels rather than restarting it.
+  const { enabled, action } = nextSnoozeAction(!!pending);
+  if (action === "clear") await chrome.alarms.clear("snooze");
+  else await chrome.alarms.create("snooze", { delayInMinutes: 5 });
+  globalEnabled = enabled;
+  enabledToggle.checked = enabled;
+  await chrome.storage.local.set({ enabled });
+  const { exemptRules = [] } = await chrome.storage.local.get("exemptRules");
+  renderHost(exemptRules);
+  refreshCountdown();
 });
 
 dashboardBtn.addEventListener("click", () => {
@@ -122,10 +182,19 @@ blockHereToggle.addEventListener("change", async () => {
   await chrome.storage.local.set({ exemptRules: next });
 });
 
-chrome.storage.onChanged.addListener((changes, area) => {
+chrome.storage.onChanged.addListener(async (changes, area) => {
   if (area !== "local") return;
   if (changes.blockedCount) renderStat(statEl, changes.blockedCount.newValue);
   if (changes.grayColor) renderColorSwatches(changes.grayColor.newValue || DEFAULT_GRAY_COLOR);
+  if (changes.enabled) {
+    // Keeps a popup pinned open (e.g. via DevTools) in sync when the snooze
+    // alarm restores `enabled` in the background.
+    globalEnabled = changes.enabled.newValue !== false;
+    enabledToggle.checked = globalEnabled;
+    const { exemptRules = [] } = await chrome.storage.local.get("exemptRules");
+    renderHost(exemptRules);
+    refreshCountdown();
+  }
 });
 
 init();

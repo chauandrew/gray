@@ -9,7 +9,7 @@
     "48": "icons/48.png",
     "128": "icons/128.png"
   },
-  "permissions": ["storage", "activeTab", "declarativeNetRequest"],
+  "permissions": ["storage", "activeTab", "declarativeNetRequest", "alarms"],
   "background": { "service_worker": "sw.js" },
   "action": {
     "default_popup": "popup.html",

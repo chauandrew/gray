@@ -68,6 +68,7 @@ async function init() {
 }
 
 enabledToggle.addEventListener("change", () => {
+  chrome.alarms.clear("snooze"); // manual override always cancels a pending snooze
   chrome.storage.local.set({ enabled: enabledToggle.checked });
 });
 
