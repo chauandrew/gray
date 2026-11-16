@@ -11,4 +11,9 @@ assert.strictEqual(formatCount(1_570_324), "1.57 million");
 assert.strictEqual(formatCount(2_500_000), "2.5 million");
 assert.strictEqual(formatCount(12_345_678), "12.35 million");
 
+// A billion and up switches word.
+assert.strictEqual(formatCount(1_000_000_000), "1 billion");
+assert.strictEqual(formatCount(1_234_567_890), "1.23 billion");
+assert.strictEqual(formatCount(25_000_000_000), "25 billion");
+
 console.log("stat.test.js: ok");
