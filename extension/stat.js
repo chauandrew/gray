@@ -1,11 +1,16 @@
 // Shared by popup.js and options.js.
 // Below a million, the exact comma-separated count; from a million up, "1.57
-// million" / "1.2 billion" (two decimals, trailing zeros dropped) since the
-// full digits get hard to read at a glance and nobody needs that precision.
+// million" / "1.2 billion" since the full digits get hard to read at a glance
+// and nobody needs that precision. Locale is pinned to "en" because the
+// sentence around it is English.
+const compactCount = new Intl.NumberFormat("en", {
+  notation: "compact",
+  compactDisplay: "long",
+  maximumFractionDigits: 2,
+});
+
 function formatCount(n) {
-  if (n < 1_000_000) return n.toLocaleString();
-  const [divisor, word] = n < 1_000_000_000 ? [1_000_000, "million"] : [1_000_000_000, "billion"];
-  return `${Number((n / divisor).toFixed(2)).toLocaleString()} ${word}`;
+  return n < 1_000_000 ? n.toLocaleString("en") : compactCount.format(n);
 }
 
 function renderStat(el, blockedCount) {

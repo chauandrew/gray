@@ -16,4 +16,7 @@ assert.strictEqual(formatCount(1_000_000_000), "1 billion");
 assert.strictEqual(formatCount(1_234_567_890), "1.23 billion");
 assert.strictEqual(formatCount(25_000_000_000), "25 billion");
 
+// Rounding up across a tier boundary rolls over instead of "1,000 million".
+assert.strictEqual(formatCount(999_999_999), "1 billion");
+
 console.log("stat.test.js: ok");
