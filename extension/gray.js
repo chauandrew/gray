@@ -232,14 +232,32 @@
   // ponytail: counts any failed image load on a non-exempt page, not only
   // ones we blocked (a real 404 would also count). Fine for a fun stat, not
   // precise enough for anything that needs to be exact.
+  //
+  // Batched: a heavy page blocks hundreds of images at once, and one message
+  // (plus a storage read and write in the service worker) per image swamped
+  // storage during browser startup. Flushes once a second, and on pagehide so
+  // a navigating-away tab doesn't drop its last batch. Losing a second or
+  // two of counts if something dies mid-batch is fine for a rough stat.
+  let pendingBlocked = 0;
+  let flushTimer = null;
+  function flushBlocked() {
+    clearTimeout(flushTimer);
+    flushTimer = null;
+    if (!pendingBlocked) return;
+    const count = pendingBlocked;
+    pendingBlocked = 0;
+    chrome.runtime.sendMessage({ type: "incrementBlocked", count }).catch(() => {});
+  }
   document.addEventListener(
     "error",
     (e) => {
       const img = e.target;
       if (img.tagName !== "IMG") return;
       if (root.hasAttribute("data-gray-off")) return; // exempt page, not our doing
-      chrome.runtime.sendMessage({ type: "incrementBlocked", count: 1 }).catch(() => {});
+      pendingBlocked++;
+      flushTimer ??= setTimeout(flushBlocked, 1000);
     },
     true,
   );
+  addEventListener("pagehide", flushBlocked);
 })();

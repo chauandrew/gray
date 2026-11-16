@@ -80,17 +80,25 @@ chrome.tabs.onRemoved.addListener((tabId) => {
     .catch(() => {});
 });
 
-// Serializes the counter's read-modify-write so concurrent increments from
-// many tabs (a page can fire dozens of blocked-image events at once) don't
-// lose updates to each other. Only protects within one service worker
-// "awake" period, which is the only window where the race actually happens.
+// Accumulates counts from every tab in memory and writes them out at most
+// once every couple of seconds, instead of a storage read+write per message.
+// Counts still pending if the worker is killed are lost, which is fine for a
+// rough stat. The queue serializes the read-modify-write itself so two
+// flushes can never overlap and lose updates to each other.
+let pendingBlocked = 0;
+let flushTimer = null;
 let counterQueue = Promise.resolve();
 function incrementBlockedCount(by) {
-  counterQueue = counterQueue.then(async () => {
-    const { blockedCount = 0 } = await chrome.storage.local.get("blockedCount");
-    await chrome.storage.local.set({ blockedCount: blockedCount + by });
-  });
-  return counterQueue;
+  pendingBlocked += by;
+  flushTimer ??= setTimeout(() => {
+    flushTimer = null;
+    const batch = pendingBlocked;
+    pendingBlocked = 0;
+    counterQueue = counterQueue.then(async () => {
+      const { blockedCount = 0 } = await chrome.storage.local.get("blockedCount");
+      await chrome.storage.local.set({ blockedCount: blockedCount + batch });
+    });
+  }, 2000);
 }
 
 chrome.alarms.onAlarm.addListener((alarm) => {
