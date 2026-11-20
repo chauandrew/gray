@@ -8,7 +8,7 @@ function parseRule(rule) {
 }
 
 // Subdomain-inclusive (example.com exempts www.example.com), mirroring how
-// the service worker's initiatorDomains dynamic rule matches subdomains
+// the service worker's topDomains dynamic rule matches subdomains
 // automatically.
 function ruleMatches(host, pathname, rule) {
   const { domain, path } = parseRule(rule);

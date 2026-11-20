@@ -17,7 +17,7 @@ Images and autoplaying video are most of the weight, and most of the distraction
 ## Features
 
 - **Blocks images before they load** via a `declarativeNetRequest` rule, not a CSS filter, so the bytes never come down and pages render faster with less data used.
-- **Mutes video** automatically, including inside same-origin iframes.
+- **Mutes video** automatically, including inside iframes. Exempting a page also exempts its embedded frames.
 - **Per-site and per-path exceptions**: allow images on a whole domain (`example.com`) or just one section of it (`example.com/maps`).
 - **Custom box color**: five presets, applied instantly across blocked images, backgrounds, and video.
 - **Handles the edge cases**: CSS `background-image` (inline and stylesheet-declared), `data:`/`blob:` images that bypass network blocking, small icons/favicons (skipped so they don't render as broken boxes), and dynamically-inserted content via a `MutationObserver`.
