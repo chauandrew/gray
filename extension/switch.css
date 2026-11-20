@@ -54,3 +54,14 @@
 .swatch.selected {
   box-shadow: 0 0 0 2px #1c1c1e, 0 0 0 4px var(--accent);
 }
+.switch input:focus-visible + .track,
+.swatch:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .switch .track,
+  .switch .thumb {
+    transition: none;
+  }
+}

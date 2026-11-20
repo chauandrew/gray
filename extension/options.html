@@ -1,5 +1,5 @@
 <!doctype html>
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <title>Gray dashboard</title>
@@ -133,9 +133,9 @@
     <div id="stat">You've blocked 0 images so far.</div>
 
     <div class="row">
-      <div>Enabled everywhere</div>
+      <div id="enabledLabel">Enabled everywhere</div>
       <label class="switch">
-        <input type="checkbox" id="enabled" />
+        <input type="checkbox" id="enabled" aria-labelledby="enabledLabel" />
         <span class="track"></span>
         <span class="thumb"></span>
       </label>

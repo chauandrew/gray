@@ -11,6 +11,17 @@
   let enabled = true;
   let exemptRules = [];
 
+  // Sets the box color and picks black or white alt text, whichever contrasts
+  // more (WCAG relative luminance; 0.179 is where the two are equal).
+  function setGrayColor(hex) {
+    const lum = [1, 3, 5]
+      .map((i) => parseInt(hex.slice(i, i + 2), 16) / 255)
+      .map((c) => (c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4))
+      .reduce((sum, c, i) => sum + c * [0.2126, 0.7152, 0.0722][i], 0);
+    root.style.setProperty("--gray-color", hex);
+    root.style.setProperty("--gray-text", lum > 0.179 ? "#000" : "#fff");
+  }
+
   function applyState() {
     const host = location.hostname;
     const pathname = location.pathname;
@@ -57,7 +68,7 @@
       .then((stored) => {
         enabled = stored.enabled !== false;
         exemptRules = stored.exemptRules || [];
-        if (stored.grayColor) root.style.setProperty("--gray-color", stored.grayColor);
+        if (stored.grayColor) setGrayColor(stored.grayColor);
         applyState();
       })
       .catch(() => {});
@@ -66,7 +77,7 @@
       if (area !== "local") return;
       if (changes.enabled) enabled = changes.enabled.newValue !== false;
       if (changes.exemptRules) exemptRules = changes.exemptRules.newValue || [];
-      if (changes.grayColor) root.style.setProperty("--gray-color", changes.grayColor.newValue);
+      if (changes.grayColor) setGrayColor(changes.grayColor.newValue);
       if (changes.enabled || changes.exemptRules) applyState();
     });
   } catch {

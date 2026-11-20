@@ -1,6 +1,13 @@
 // Shared by popup.js and options.js. Both host a #colorSwatches container and
 // both want a pick to write straight to storage, so neither is a parameter.
 const GRAY_COLORS = ["#808080", "#9c9086", "#756b60", "#7c868f", "#869383"];
+const GRAY_COLOR_NAMES = {
+  "#808080": "Neutral gray",
+  "#9c9086": "Warm gray",
+  "#756b60": "Dark warm gray",
+  "#7c868f": "Cool gray",
+  "#869383": "Sage gray",
+};
 const DEFAULT_GRAY_COLOR = "#9c9086"; // matches the fallback baked into gray.css
 
 function renderColorSwatches(selected) {
@@ -10,7 +17,8 @@ function renderColorSwatches(selected) {
     const btn = document.createElement("button");
     btn.className = "swatch" + (color === selected ? " selected" : "");
     btn.style.background = color;
-    btn.setAttribute("aria-label", color);
+    btn.setAttribute("aria-label", GRAY_COLOR_NAMES[color]);
+    btn.setAttribute("aria-pressed", color === selected);
     btn.addEventListener("click", () => chrome.storage.local.set({ grayColor: color }));
     container.appendChild(btn);
   }
