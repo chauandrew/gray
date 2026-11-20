@@ -54,3 +54,19 @@
 .swatch.selected {
   box-shadow: 0 0 0 2px #1c1c1e, 0 0 0 4px var(--accent);
 }
+.switch input:focus-visible + .track,
+.swatch:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+/* Clear of the selected swatch's 2-4px accent ring, which an offset of 2px
+   would land exactly on. */
+.swatch:focus-visible {
+  outline-offset: 6px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .switch .track,
+  .switch .thumb {
+    transition: none;
+  }
+}

@@ -57,6 +57,7 @@ chrome.storage.onChanged.addListener((changes, area) => {
 // path matches a stored path rule. The id is deterministic (tab id), so this
 // is just "set the rule for this tab to match/not-match" with no need to
 // track or look up prior state.
+let pathQueue = Promise.resolve();
 async function syncPathExemption(tabId, matches) {
   const id = PATH_SESSION_ID_BASE + tabId;
   await chrome.declarativeNetRequest.updateSessionRules({
@@ -109,8 +110,21 @@ chrome.alarms.onAlarm.addListener((alarm) => {
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === "syncPathExemption") {
-    if (sender.tab?.id != null) syncPathExemption(sender.tab.id, message.matches);
+    if (sender.tab?.id != null) {
+      pathQueue = pathQueue.then(() => syncPathExemption(sender.tab.id, message.matches)).catch(() => {});
+    }
     return false;
+  }
+
+  // Asked by subframes, which can't see the top page's path. Queued behind any
+  // pending sync so a frame that loads right after the top frame sees its rule.
+  if (message.type === "isPathExempt") {
+    const id = PATH_SESSION_ID_BASE + sender.tab?.id;
+    pathQueue
+      .then(() => chrome.declarativeNetRequest.getSessionRules())
+      .then((rules) => sendResponse(rules.some((r) => r.id === id)))
+      .catch(() => sendResponse(false));
+    return true;
   }
 
   if (message.type === "incrementBlocked") {

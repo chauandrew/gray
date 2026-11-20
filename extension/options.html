@@ -1,5 +1,5 @@
 <!doctype html>
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <title>Gray dashboard</title>
@@ -133,9 +133,9 @@
     <div id="stat">You've blocked 0 images so far.</div>
 
     <div class="row">
-      <div>Enabled everywhere</div>
+      <div id="enabledLabel">Enabled everywhere</div>
       <label class="switch">
-        <input type="checkbox" id="enabled" />
+        <input type="checkbox" id="enabled" aria-labelledby="enabledLabel" />
         <span class="track"></span>
         <span class="thumb"></span>
       </label>
@@ -155,7 +155,7 @@
         Path rules apply per-tab and are re-checked on full page loads only.
       </p>
       <form id="addForm">
-        <input type="text" id="ruleInput" placeholder="example.com or example.com/path" />
+        <input type="text" id="ruleInput" aria-label="Exempt site or path" placeholder="example.com or example.com/path" />
         <button type="submit" class="primary">Add</button>
       </form>
       <div id="rules"></div>

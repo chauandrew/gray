@@ -10,6 +10,18 @@
   let enabled = true;
   let exemptRules = [];
 
+  // Sets the box color and picks black or white alt text, whichever contrasts
+  // more (WCAG relative luminance; 0.179 is where the two are equal).
+  function setGrayColor(hex) {
+    if (!/^#[0-9a-f]{6}$/i.test(hex)) return; // missing or malformed: keep current
+    const lum = [1, 3, 5]
+      .map((i) => parseInt(hex.slice(i, i + 2), 16) / 255)
+      .map((c) => (c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4))
+      .reduce((sum, c, i) => sum + c * [0.2126, 0.7152, 0.0722][i], 0);
+    root.style.setProperty("--gray-color", hex);
+    root.style.setProperty("--gray-text", lum > 0.179 ? "#000" : "#fff");
+  }
+
   // ancestorOrigins' last entry is the top-level origin, available to
   // cross-origin frames; falls back to the frame's own host if it's absent.
   // An opaque top origin shows up as the string "null", which URL() rejects.
@@ -25,19 +37,11 @@
   // rules apply; path rules would pair the top host with the frame's own path.
   const isTop = window === window.top;
 
-  function applyState() {
-    const host = topHost();
-    const pathname = location.pathname;
-    const exempt =
-      !enabled ||
-      exemptRules.some(
-        (r) => (isTop || parseRule(r).path === null) && ruleMatches(host, pathname, r),
-      );
-
-    // data-gray-off (not data-gray-on): gray.css's default, attribute-absent
-    // state must mean "blocking active" so that a page where this script
-    // fails to inject at all still fails closed, same as the network-level
-    // DNR block does independent of this script running.
+  // data-gray-off (not data-gray-on): gray.css's default, attribute-absent
+  // state must mean "blocking active" so that a page where this script
+  // fails to inject at all still fails closed, same as the network-level
+  // DNR block does independent of this script running.
+  function setExempt(exempt) {
     if (exempt) {
       root.setAttribute("data-gray-off", "");
     } else {
@@ -48,10 +52,37 @@
       // grayed out too instead of staying visible until the next reload.
       scanLoadedImages();
     }
+  }
+
+  function applyState() {
+    const host = topHost();
+    const pathname = location.pathname;
+    const hasPathRules = exemptRules.some((r) => parseRule(r).path !== null);
+    const exempt =
+      !enabled ||
+      exemptRules.some(
+        (r) => (isTop || parseRule(r).path === null) && ruleMatches(host, pathname, r),
+      );
+
+    // A subframe can't see the top page's path, so it asks the service worker
+    // whether the tab's path-rule session rule (set by the top frame, below)
+    // is active, and only then settles its state (so a re-check never flickers
+    // the attribute off and on; until the answer arrives it stays as it was,
+    // blocking by default). ponytail: the answer can be stale or early (a
+    // subframe that loads before the top frame syncs, or right after a
+    // same-tab navigation off a path-exempt page); the next load is correct.
+    if (!isTop && !exempt && hasPathRules) {
+      chrome.runtime
+        .sendMessage({ type: "isPathExempt" })
+        .then((yes) => setExempt(!!yes))
+        .catch(() => setExempt(false));
+    } else {
+      setExempt(exempt);
+    }
 
     // Domain-level rules are already enforced by a persistent dynamic DNR
     // rule regardless of this script. Path-level rules have no such native
-    // support (initiatorDomains can't express a path), so they're enforced by
+    // support (topDomains can't express a path), so they're enforced by
     // a tab-scoped session rule that only this script can ask for. Evaluated
     // once per top-level navigation; a client-side route change (pushState)
     // inside a single-page app won't re-trigger this until the next full load.
@@ -75,7 +106,7 @@
       .then((stored) => {
         enabled = stored.enabled !== false;
         exemptRules = stored.exemptRules || [];
-        if (stored.grayColor) root.style.setProperty("--gray-color", stored.grayColor);
+        if (stored.grayColor) setGrayColor(stored.grayColor);
         applyState();
       })
       .catch(() => {});
@@ -84,7 +115,7 @@
       if (area !== "local") return;
       if (changes.enabled) enabled = changes.enabled.newValue !== false;
       if (changes.exemptRules) exemptRules = changes.exemptRules.newValue || [];
-      if (changes.grayColor) root.style.setProperty("--gray-color", changes.grayColor.newValue);
+      if (changes.grayColor) setGrayColor(changes.grayColor.newValue);
       if (changes.enabled || changes.exemptRules) applyState();
     });
   } catch {
@@ -222,7 +253,7 @@
 
   // Mute video. Media events don't bubble, but capture-phase listeners still
   // see them, so two document-level listeners cover every video, including
-  // ones inside same-origin-matched iframes (all_frames in the manifest).
+  // ones inside iframes (all_frames in the manifest).
   //
   // mute() defaults to active before applyState()'s async storage read
   // resolves (same "assume on" default as gray.css), so a video playing in

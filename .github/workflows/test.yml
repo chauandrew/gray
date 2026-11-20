@@ -27,7 +27,7 @@ jobs:
           path: |
             ~/.cache/Cypress
             ~/.cache/puppeteer
-          key: browsers-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          key: browsers-${{ runner.os }}-${{ hashFiles('package-lock.json', 'cypress.config.js') }}
 
       - run: npm ci
 

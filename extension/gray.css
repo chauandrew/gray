@@ -1,13 +1,14 @@
 /* Blocked images: paint the reserved box and keep alt text readable.
    No filter here, or contrast(0) would flatten the alt text to gray-on-gray.
-   --gray-color is set at runtime by gray.js from the user's chosen box
+   --gray-color (and --gray-text, black or white for contrast) is set at
+   runtime by gray.js from the user's chosen box
    color (dashboard); the fallback keeps the right color from first paint,
    before that JS has had a chance to run. data-gray-skip (added after layout,
    by gray.js) excludes icon-sized images, which read as broken rather than
    intentional when boxed solid. */
 html:not([data-gray-off]) img:not([data-gray-skip]) {
   background-color: var(--gray-color, #9c9086) !important;
-  color: #1a1a1a;
+  color: var(--gray-text, #000);
 }
 
 /* data: and blob: images bypass declarativeNetRequest entirely, so they still

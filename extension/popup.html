@@ -1,5 +1,5 @@
 <!doctype html>
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <link rel="stylesheet" href="switch.css" />
@@ -47,7 +47,7 @@
         cursor: pointer;
         font: inherit;
         font-size: 10px;
-        padding: 2px 4px;
+        padding: 6px 8px;
       }
       #snooze:hover {
         color: #f2f2f2;
@@ -147,7 +147,7 @@
         color: #9a9a9e;
         cursor: pointer;
         font-size: 13px;
-        padding: 2px 4px;
+        padding: 6px 8px;
         line-height: 1;
       }
       #rateDismiss:hover {
@@ -171,9 +171,9 @@
     </header>
 
     <div class="row">
-      <div class="row-label">Enabled everywhere</div>
+      <div class="row-label" id="enabledLabel">Enabled everywhere</div>
       <label class="switch">
-        <input type="checkbox" id="enabled" disabled />
+        <input type="checkbox" id="enabled" aria-labelledby="enabledLabel" disabled />
         <span class="track"></span>
         <span class="thumb"></span>
       </label>
@@ -181,11 +181,11 @@
 
     <div class="row">
       <div>
-        <div class="row-label">Block images here</div>
+        <div class="row-label" id="blockHereLabel">Block images here</div>
         <div class="row-sub" id="host">this site</div>
       </div>
       <label class="switch">
-        <input type="checkbox" id="blockHere" disabled />
+        <input type="checkbox" id="blockHere" aria-labelledby="blockHereLabel host" disabled />
         <span class="track"></span>
         <span class="thumb"></span>
       </label>
