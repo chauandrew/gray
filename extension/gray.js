@@ -2,11 +2,10 @@
   const root = document.documentElement;
 
   // parseRule/ruleMatches come from match.js (loaded before this file in the
-  // manifest's content_scripts). Deliberately matched against the frame's OWN
-  // host, not the top-level page's, so this always agrees with the service
-  // worker's initiatorDomains rule (also per-frame-origin) — checking the
-  // top-level host would desync CSS painting from actual blocking inside
-  // third-party iframes.
+  // manifest's content_scripts). Matched against the TOP-LEVEL page's host,
+  // even inside cross-origin iframes, so this agrees with the service worker's
+  // topDomains rule. An exempt page must exempt its embedded players too
+  // (Google Drive's video player lives in a cross-origin iframe).
 
   let enabled = true;
   let exemptRules = [];
@@ -23,10 +22,29 @@
     root.style.setProperty("--gray-text", lum > 0.179 ? "#000" : "#fff");
   }
 
+  // ancestorOrigins' last entry is the top-level origin, available to
+  // cross-origin frames; falls back to the frame's own host if it's absent.
+  // An opaque top origin shows up as the string "null", which URL() rejects.
+  const topHost = () => {
+    try {
+      return new URL(location.ancestorOrigins[location.ancestorOrigins.length - 1]).hostname;
+    } catch {
+      return location.hostname;
+    }
+  };
+
+  // A subframe can't see the top page's path, so inside one only domain-level
+  // rules apply; path rules would pair the top host with the frame's own path.
+  const isTop = window === window.top;
+
   function applyState() {
-    const host = location.hostname;
+    const host = topHost();
     const pathname = location.pathname;
-    const exempt = !enabled || exemptRules.some((r) => ruleMatches(host, pathname, r));
+    const exempt =
+      !enabled ||
+      exemptRules.some(
+        (r) => (isTop || parseRule(r).path === null) && ruleMatches(host, pathname, r),
+      );
 
     // data-gray-off (not data-gray-on): gray.css's default, attribute-absent
     // state must mean "blocking active" so that a page where this script
