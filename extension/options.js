@@ -21,6 +21,7 @@ function renderRules(exemptRules) {
 
     const removeBtn = document.createElement("button");
     removeBtn.textContent = "Remove";
+    removeBtn.setAttribute("aria-label", "Remove " + rule);
     removeBtn.addEventListener("click", async () => {
       const { exemptRules = [] } = await chrome.storage.local.get("exemptRules");
       await chrome.storage.local.set({ exemptRules: exemptRules.filter((r) => r !== rule) });

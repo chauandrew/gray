@@ -37,19 +37,11 @@
   // rules apply; path rules would pair the top host with the frame's own path.
   const isTop = window === window.top;
 
-  function applyState() {
-    const host = topHost();
-    const pathname = location.pathname;
-    const exempt =
-      !enabled ||
-      exemptRules.some(
-        (r) => (isTop || parseRule(r).path === null) && ruleMatches(host, pathname, r),
-      );
-
-    // data-gray-off (not data-gray-on): gray.css's default, attribute-absent
-    // state must mean "blocking active" so that a page where this script
-    // fails to inject at all still fails closed, same as the network-level
-    // DNR block does independent of this script running.
+  // data-gray-off (not data-gray-on): gray.css's default, attribute-absent
+  // state must mean "blocking active" so that a page where this script
+  // fails to inject at all still fails closed, same as the network-level
+  // DNR block does independent of this script running.
+  function setExempt(exempt) {
     if (exempt) {
       root.setAttribute("data-gray-off", "");
     } else {
@@ -60,10 +52,33 @@
       // grayed out too instead of staying visible until the next reload.
       scanLoadedImages();
     }
+  }
+
+  function applyState() {
+    const host = topHost();
+    const pathname = location.pathname;
+    const hasPathRules = exemptRules.some((r) => parseRule(r).path !== null);
+    const exempt =
+      !enabled ||
+      exemptRules.some(
+        (r) => (isTop || parseRule(r).path === null) && ruleMatches(host, pathname, r),
+      );
+    setExempt(exempt);
+
+    // A subframe can't see the top page's path, so it asks the service worker
+    // whether the tab's path-rule session rule (set by the top frame, below)
+    // is active. ponytail: a rule edit made while the page is open can race the
+    // top frame's update; the next load is always correct.
+    if (!isTop && !exempt && hasPathRules) {
+      chrome.runtime
+        .sendMessage({ type: "isPathExempt" })
+        .then((yes) => yes && setExempt(true))
+        .catch(() => {});
+    }
 
     // Domain-level rules are already enforced by a persistent dynamic DNR
     // rule regardless of this script. Path-level rules have no such native
-    // support (initiatorDomains can't express a path), so they're enforced by
+    // support (topDomains can't express a path), so they're enforced by
     // a tab-scoped session rule that only this script can ask for. Evaluated
     // once per top-level navigation; a client-side route change (pushState)
     // inside a single-page app won't re-trigger this until the next full load.
@@ -234,7 +249,7 @@
 
   // Mute video. Media events don't bubble, but capture-phase listeners still
   // see them, so two document-level listeners cover every video, including
-  // ones inside same-origin-matched iframes (all_frames in the manifest).
+  // ones inside iframes (all_frames in the manifest).
   //
   // mute() defaults to active before applyState()'s async storage read
   // resolves (same "assume on" default as gray.css), so a video playing in

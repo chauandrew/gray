@@ -28,7 +28,7 @@ function formatRemaining(ms) {
 
 function setSnoozeIdle() {
   snoozeBtn.classList.remove("active");
-  snoozeBtn.title = "Pause for 5 minutes";
+  snoozeBtn.title = snoozeBtn.ariaLabel = "Pause for 5 minutes";
   snoozeLabel.textContent = DEFAULT_SNOOZE_LABEL;
 }
 
@@ -49,7 +49,7 @@ async function refreshCountdown() {
       setSnoozeIdle();
       return;
     }
-    snoozeBtn.title = "Resume blocking now";
+    snoozeBtn.title = snoozeBtn.ariaLabel = "Resume blocking now";
     snoozeLabel.textContent = formatRemaining(remaining);
   };
   tick();
