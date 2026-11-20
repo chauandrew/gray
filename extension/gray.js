@@ -14,6 +14,7 @@
   // Sets the box color and picks black or white alt text, whichever contrasts
   // more (WCAG relative luminance; 0.179 is where the two are equal).
   function setGrayColor(hex) {
+    if (!/^#[0-9a-f]{6}$/i.test(hex)) return; // missing or malformed: keep current
     const lum = [1, 3, 5]
       .map((i) => parseInt(hex.slice(i, i + 2), 16) / 255)
       .map((c) => (c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4))
