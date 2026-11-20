@@ -63,17 +63,21 @@
       exemptRules.some(
         (r) => (isTop || parseRule(r).path === null) && ruleMatches(host, pathname, r),
       );
-    setExempt(exempt);
 
     // A subframe can't see the top page's path, so it asks the service worker
     // whether the tab's path-rule session rule (set by the top frame, below)
-    // is active. ponytail: a rule edit made while the page is open can race the
-    // top frame's update; the next load is always correct.
+    // is active, and only then settles its state (so a re-check never flickers
+    // the attribute off and on; until the answer arrives it stays as it was,
+    // blocking by default). ponytail: the answer can be stale or early (a
+    // subframe that loads before the top frame syncs, or right after a
+    // same-tab navigation off a path-exempt page); the next load is correct.
     if (!isTop && !exempt && hasPathRules) {
       chrome.runtime
         .sendMessage({ type: "isPathExempt" })
-        .then((yes) => yes && setExempt(true))
-        .catch(() => {});
+        .then((yes) => setExempt(!!yes))
+        .catch(() => setExempt(false));
+    } else {
+      setExempt(exempt);
     }
 
     // Domain-level rules are already enforced by a persistent dynamic DNR
