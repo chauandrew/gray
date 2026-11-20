@@ -9,7 +9,7 @@ const PATH_SESSION_ID_BASE = 500000;
 
 // A rule with a "/" is host+path (e.g. "google.com/maps"); domain-only rules
 // have no "/". Only domain-only rules can become DNR dynamic rules, since
-// initiatorDomains has no concept of path — see syncPathExemption for how
+// topDomains has no concept of path, see syncPathExemption for how
 // path rules are enforced instead.
 function isDomainOnly(rule) {
   return !rule.includes("/");
@@ -37,7 +37,9 @@ async function syncState() {
     id: DYNAMIC_ID_BASE + i,
     priority: 2,
     action: { type: "allow" },
-    condition: { initiatorDomains: [host], resourceTypes: ["image"] },
+    // topDomains (not initiatorDomains) so cross-origin iframes inside an
+    // exempt page are exempt too. Needs Chrome 141+ (manifest minimum).
+    condition: { topDomains: [host], resourceTypes: ["image"] },
   }));
 
   await chrome.declarativeNetRequest.updateDynamicRules({ removeRuleIds, addRules });

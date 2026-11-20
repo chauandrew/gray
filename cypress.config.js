@@ -17,7 +17,10 @@ const extensionPath = path.join(__dirname, "extension");
 // pulling in the full browser-automation API as a dependency.
 async function ensureChromeForTesting() {
   const platform = detectBrowserPlatform();
-  const buildId = await resolveBuildId(Browser.CHROME, platform, "stable");
+  // Pinned: Cypress 15.20 crashes ("* is not a valid URL") from the second
+  // spec onward on Chrome for Testing 158 (the "stable" build at the time).
+  // Unpin once a Cypress release supports it.
+  const buildId = await resolveBuildId(Browser.CHROME, platform, "157.0.8103.78");
   const cacheDir = path.join(os.homedir(), ".cache", "puppeteer");
   const executablePath = computeExecutablePath({ browser: Browser.CHROME, buildId, cacheDir });
   if (!fs.existsSync(executablePath)) {
